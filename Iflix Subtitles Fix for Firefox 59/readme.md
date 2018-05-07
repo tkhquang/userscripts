@@ -1,5 +1,5 @@
 # Iflix Subtitles Fix for Firefox 59
-An userscripts for Tampermonkey/Violentmonkey/Greasemonkey
+An userscript for Tampermonkey/Violentmonkey/Greasemonkey
 
 Iflix seems to have problems with Firefox, this is just a fix for a small stuff that I've encounterd. Without the script, subtitles text sizes are just too small, making it hardly readable.
 
