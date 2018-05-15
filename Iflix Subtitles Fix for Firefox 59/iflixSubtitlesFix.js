@@ -1,37 +1,47 @@
 // ==UserScript==
 // @name         Iflix Subtitles Fix for Firefox 59
 // @namespace    https://github.com/tkhquang
-// @version      1.5
+// @version      1.7
 // @description  Subtitles fix for Firefox
 // @author       Aleks
+// @homepage     https://greasyfork.org/en/scripts/367324-iflix-subtitles-fix-for-firefox-59
 // @include      *://piay.iflix.com/*
 // @run-at       document-start
 // @grant        GM_addStyle
 // ==/UserScript==
 
-var i;
-var j;
-var k;
-var l;
+/*==================*
+ * Reference: http://ronallo.com/demos/webvtt-cue-settings/
+ * You can change the below variables to suite your needs.
+ *==================*/
+
+var lineVTT = 14, //See reference
+    minfontSize = "12px", //Subtitles font-size won't scale smaller than this value
+    fontSize = "3vmin", //font-size = minfontSize + this value
+    lineHeight = "150%"; //Better leave this as is
+
+var i, j, k, l;
 var vimond;
 var vimondSubList;
 var vidState;
 var selectedSub;
-var CurLineValue;
+var curLineValue;
 var vidStateCheck;
+
 var getVidState = function getVidState() {
     vimond = document.getElementsByTagName("video")[0];
-    if (vimond === undefined) {
+    if (typeof vimond === "undefined") {
         vidState = false;
         console.log("iSFix - No video? Try getting it after 5s...");
         vidStateCheck = function vidStateCheck() {
             getVidState();
         };
         setInterval(vidStateCheck, 5000);
+        return;
     }
     vidState = true;
     getSubList();
-    if (vidStateCheck !== undefined) {
+    if (typeof vidStateCheck !== "undefined") {
         clearInterval(vidStateCheck);
     }
 };
@@ -46,16 +56,19 @@ var getSubList = function getSubList() {
 };
 
 var onSubAction = function onSubAction() {
-    if (vimondSubList !== undefined) {
-        vimondSubList.onchange = function() {
-            console.log("iSFix - Subtitles onchange action");
-            getSub();
-        };
+    if (typeof vimondSubList === "undefined") {
+        return;
     }
+    vimondSubList.onchange = function() {
+        console.log("iSFix - Subtitles onchange action");
+        getSub();
+    };
 };
 
 var getSub = function getSub() {
-    if (vimondSubList !== undefined) {
+    if (typeof vimondSubList === "undefined") {
+        return;
+    }
     for (j = 0; j < vimondSubList.length; j+=1) {
         if (vimondSubList[j].mode === "showing") {
             break;
@@ -63,48 +76,47 @@ var getSub = function getSub() {
     }
     selectedSub = vimondSubList[j];
     setTimeout(alterSub, 500);
-    }
 };
 
 var alterSub = function alterSub() {
-    if (selectedSub !== undefined) {
-        CurLineValue = selectedSub.cues[0].line;
-        if (CurLineValue !== 14) {
-            for (k = 0; k < selectedSub.cues.length; k+=1) {
-                selectedSub.cues[k].line = 14;
-            }
-            console.log("iSFix - Done setting lines!");
-            setTimeout(lineCheck, 3000);}
+    if (typeof selectedSub === "undefined") {
+        return;
     }
-    return;
+    curLineValue = selectedSub.cues[0].line;
+    if (curLineValue !== lineVTT) {
+        for (k = 0; k < selectedSub.cues.length; k+=1) {
+            selectedSub.cues[k].line = lineVTT;
+        }
+        console.log("iSFix - Done setting lines!");
+        setTimeout(lineCheck, 3000);}
 };
 
 var lineCheck = function lineCheck() {
-    if (selectedSub !== undefined) {
-        CurLineValue = selectedSub.cues[0].line;
-        //if (selectedSub.cues.length == 0) {
-        //console.log("No Subtitle");
-        //}
-        console.log("iSFix - Current line value: " + CurLineValue);
-        if (CurLineValue !== 14) {
-            console.log("iSubFix - Unmodified lines => Changing line value...");
-            alterSub();
-        }
-        console.log("iSFix - Passed!!!");
+    if (typeof selectedSub === "undefined") {
+        return;
     }
-    return;
+    curLineValue = selectedSub.cues[0].line;
+    //if (selectedSub.cues.length === 0) {
+    //console.log("No Subtitle");
+    //}
+    console.log("iSFix - Current line value: " + curLineValue);
+    if (curLineValue !== lineVTT) {
+        console.log("iSubFix - Unmodified lines => Changing line value...");
+        alterSub();
+    }
+    console.log("iSFix - Passed!!!");
 };
 var styleSub = function styleSub() {
     var css = "";
-    if (false || (document.location.href.indexOf("https://piay.iflix.com/play/") === 0) || (document.location.href.indexOf("http://piay.iflix.com/play/*") === 0)){
-        css += [
-            "::cue {",
-            "    font-size: 32px !important;",
-            "    padding: 3px !important;",
-            "    line-height: 1.5 !important;",
-            "}"
-        ].join("\n");}
-    if (typeof GM_addStyle != "undefined") {
+    if (false ||
+        (document.location.href.indexOf("https://piay.iflix.com/play/") === 0) ||
+        (document.location.href.indexOf("http://piay.iflix.com/play/*") === 0)) {
+        css = `video::cue {\
+font-size: calc(${minfontSize} + ${fontSize}) !important;\
+line-height: ${lineHeight} !important;\
+}`;
+    }
+    if (typeof GM_addStyle !== "undefined") {
         GM_addStyle(css);
     } else {
         var node = document.createElement("style");
