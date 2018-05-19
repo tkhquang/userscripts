@@ -4,7 +4,7 @@
 // @version      1.8
 // @description  Subtitles fix for Firefox
 // @author       Aleks
-// @homepage     https://greasyfork.org/en/scripts/367324-iflix-subtitles-fix-for-firefox-59
+// @homepage     https://greasyfork.org/en/scripts/367324-iflix-subtitles-fix-for-firefox
 // @include      *://piay.iflix.com/*
 // @run-at       document-start
 // @grant        GM_addStyle
