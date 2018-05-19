@@ -45,7 +45,6 @@ var getVidState = function getVidState() {
     }
 };
 
-
 var getSubList = function getSubList() {
     if (vidState !== true) {
         return;}
@@ -107,6 +106,7 @@ var lineCheck = function lineCheck() {
     }
     console.log("iSFix - Passed!!!");
 };
+
 var styleSub = function styleSub() {
     var css = "";
     if (false ||
