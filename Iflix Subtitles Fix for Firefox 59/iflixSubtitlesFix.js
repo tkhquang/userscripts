@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Iflix Subtitles Fix for Firefox 59
+// @name         Iflix Subtitles Fix for Firefox 59-60
 // @namespace    https://github.com/tkhquang
-// @version      1.7
+// @version      1.8
 // @description  Subtitles fix for Firefox
 // @author       Aleks
 // @homepage     https://greasyfork.org/en/scripts/367324-iflix-subtitles-fix-for-firefox-59
@@ -20,7 +20,6 @@ var lineVTT = 14, //See reference
     fontSize = "3vmin", //font-size = minfontSize + this value
     lineHeight = "150%"; //Better leave this as is
 
-var i, j, k, l;
 var vimond;
 var vimondSubList;
 var vidState;
@@ -69,6 +68,7 @@ var getSub = function getSub() {
     if (typeof vimondSubList === "undefined") {
         return;
     }
+    var j;
     for (j = 0; j < vimondSubList.length; j+=1) {
         if (vimondSubList[j].mode === "showing") {
             break;
@@ -82,6 +82,7 @@ var alterSub = function alterSub() {
     if (typeof selectedSub === "undefined") {
         return;
     }
+    var k;
     curLineValue = selectedSub.cues[0].line;
     if (curLineValue !== lineVTT) {
         for (k = 0; k < selectedSub.cues.length; k+=1) {
@@ -137,9 +138,9 @@ document.onreadystatechange = function () {
         console.log("iSFix - Observation started");
         var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
-                if (mutation.type==="childList") {
-                    for (i=0; i<mutation.addedNodes.length; i+=1) {
-                        if (mutation.addedNodes[i].nodeName==="VIDEO") {
+                if (mutation.type === "childList") {
+                    for (let i = 0; i < mutation.addedNodes.length; i+=1) {
+                        if (mutation.addedNodes[i].nodeName === "VIDEO") {
                             console.log("iSFix - Video element available");
                             styleSub();
                             setTimeout(getVidState, 1000);
@@ -147,8 +148,8 @@ document.onreadystatechange = function () {
                         }
                     }
                 }
-                for (l = 0; l<mutation.removedNodes.length; l+=1) {
-                    if (mutation.removedNodes[l].nodeName==="video") {
+                for (let i = 0; i < mutation.removedNodes.length; i+=1) {
+                    if (mutation.removedNodes[i].nodeName === "video") {
                         console.log("iSFix - Video element removed");
                         if (vidState === false || vidStateCheck !== undefined) {
                             clearInterval(vidStateCheck);
