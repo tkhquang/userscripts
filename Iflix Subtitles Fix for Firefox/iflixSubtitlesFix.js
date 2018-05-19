@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Iflix Subtitles Fix for Firefox 59-60
+// @name         Iflix Subtitles Fix for Firefox
 // @namespace    https://github.com/tkhquang
 // @version      1.8
 // @description  Subtitles fix for Firefox
