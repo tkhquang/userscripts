@@ -1,14 +1,17 @@
 // ==UserScript==
 // @name         Iflix Subtitles Fix for Firefox
 // @namespace    https://github.com/tkhquang
-// @version      1.8
+// @version      1.9
 // @description  Subtitles fix for Firefox
 // @author       Aleks
 // @homepage     https://greasyfork.org/en/scripts/367324-iflix-subtitles-fix-for-firefox
-// @include      *://piay.iflix.com/*
+// @match        *://piay.iflix.com/*
 // @run-at       document-start
+// @require      https://raw.githubusercontent.com/uzairfarooq/arrive/master/minified/arrive.min.js
 // @grant        GM_addStyle
 // ==/UserScript==
+
+/* jshint esversion: 6 */
 
 /*==================*
  * Reference: http://ronallo.com/demos/webvtt-cue-settings/
@@ -18,18 +21,18 @@
 var lineVTT = 14, //See reference
     minfontSize = "12px", //Subtitles font-size won't scale smaller than this value
     fontSize = "3vmin", //font-size = minfontSize + this value
-    lineHeight = "150%"; //Better leave this as is
+    lineHeight = "150%"; //Better leave this as is - "normal" with lineVTT = 16
 
-var vimond;
-var vimondSubList;
+var vidPlayer;
 var vidState;
+var subList;
 var selectedSub;
 var curLineValue;
 var vidStateCheck;
 
-var getVidState = function getVidState() {
-    vimond = document.getElementsByTagName("video")[0];
-    if (typeof vimond === "undefined") {
+function getVidState() {
+    vidPlayer = document.querySelector(".vimond-player-video");
+    if (!vidPlayer) {
         vidState = false;
         console.log("iSFix - No video? Try getting it after 5s...");
         vidStateCheck = function vidStateCheck() {
@@ -43,41 +46,41 @@ var getVidState = function getVidState() {
     if (typeof vidStateCheck !== "undefined") {
         clearInterval(vidStateCheck);
     }
-};
+}
 
-var getSubList = function getSubList() {
+function getSubList() {
     if (vidState !== true) {
         return;}
-    vimondSubList = vimond.textTracks;
+    subList = vidPlayer.textTracks;
     onSubAction();
     setTimeout(getSub, 10000);
-};
+}
 
-var onSubAction = function onSubAction() {
-    if (typeof vimondSubList === "undefined") {
+function onSubAction() {
+    if (typeof subList === "undefined") {
         return;
     }
-    vimondSubList.onchange = function() {
+    subList.onchange = function() {
         console.log("iSFix - Subtitles onchange action");
         getSub();
     };
-};
+}
 
-var getSub = function getSub() {
-    if (typeof vimondSubList === "undefined") {
+function getSub() {
+    if (typeof subList === "undefined") {
         return;
     }
     var j;
-    for (j = 0; j < vimondSubList.length; j+=1) {
-        if (vimondSubList[j].mode === "showing") {
+    for (j = 0; j < subList.length; j+=1) {
+        if (subList[j].mode === "showing") {
             break;
         }
     }
-    selectedSub = vimondSubList[j];
-    setTimeout(alterSub, 500);
-};
+    selectedSub = subList[j];
+    alterSub();
+}
 
-var alterSub = function alterSub() {
+function alterSub() {
     if (typeof selectedSub === "undefined") {
         return;
     }
@@ -89,9 +92,9 @@ var alterSub = function alterSub() {
         }
         console.log("iSFix - Done setting lines!");
         setTimeout(lineCheck, 3000);}
-};
+}
 
-var lineCheck = function lineCheck() {
+function lineCheck() {
     if (typeof selectedSub === "undefined") {
         return;
     }
@@ -105,18 +108,14 @@ var lineCheck = function lineCheck() {
         alterSub();
     }
     console.log("iSFix - Passed!!!");
-};
+}
 
-var styleSub = function styleSub() {
-    var css = "";
-    if (false ||
-        (document.location.href.indexOf("https://piay.iflix.com/play/") === 0) ||
-        (document.location.href.indexOf("http://piay.iflix.com/play/*") === 0)) {
-        css = `video::cue {\
+function styleSub() {
+    if (/^\/play/.test(window.location.pathname) === false) return;
+    var css = `video::cue {\
 font-size: calc(${minfontSize} + ${fontSize}) !important;\
 line-height: ${lineHeight} !important;\
 }`;
-    }
     if (typeof GM_addStyle !== "undefined") {
         GM_addStyle(css);
     } else {
@@ -131,39 +130,12 @@ line-height: ${lineHeight} !important;\
         }
     }
     console.log("iSFix - Styling Done!");
-};
+}
 
-document.onreadystatechange = function () {
-    if (document.readyState === "complete" ) {
-        console.log("iSFix - Observation started");
-        var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === "childList") {
-                    for (let i = 0; i < mutation.addedNodes.length; i+=1) {
-                        if (mutation.addedNodes[i].nodeName === "VIDEO") {
-                            console.log("iSFix - Video element available");
-                            styleSub();
-                            setTimeout(getVidState, 1000);
-                            //getVidState();
-                        }
-                    }
-                }
-                for (let i = 0; i < mutation.removedNodes.length; i+=1) {
-                    if (mutation.removedNodes[i].nodeName === "video") {
-                        console.log("iSFix - Video element removed");
-                        if (vidState === false || vidStateCheck !== undefined) {
-                            clearInterval(vidStateCheck);
-                        }
-                    }
-                }
-            });
-        });
-
-        observer.observe(document,{
-            childList: true,
-            attributes: false,
-            characterData: false,
-            subtree: true
-        });
-    }
-};
+(function() {
+    'use strict';
+    document.arrive(".vimond-player-video", function() {
+        setTimeout(getVidState, 1000);
+        styleSub();
+    });
+})();
