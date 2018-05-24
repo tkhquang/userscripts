@@ -138,4 +138,9 @@ line-height: ${lineHeight} !important;\
         setTimeout(getVidState, 1000);
         styleSub();
     });
+    document.leave(".vimond-player-video", function() {
+        if (vidState === false || vidStateCheck !== undefined) {
+            clearInterval(vidStateCheck);
+        }
+    });
 })();
