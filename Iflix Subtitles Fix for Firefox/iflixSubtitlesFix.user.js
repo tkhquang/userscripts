@@ -7,7 +7,7 @@
 // @homepage     https://greasyfork.org/en/scripts/367324-iflix-subtitles-fix-for-firefox
 // @match        *://piay.iflix.com/*
 // @run-at       document-start
-// @require      https://raw.githubusercontent.com/uzairfarooq/arrive/master/minified/arrive.min.js
+// @require      https://greasyfork.org/scripts/21927-arrive-js/code/arrivejs.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
