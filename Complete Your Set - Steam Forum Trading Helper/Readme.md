@@ -32,7 +32,7 @@ This was a small script I had made for myself to easily make new trade threads, 
 
 `2` - Only List Unowned Cards
 
-**badgeMode** - This sets the way the script checks if your card set is full or not. Note that if you set custom value for **badgeNumSet**, your config in here will be ignored, it's always `2` in that case.
+**badgeMode** - This sets the way the script checks if your card set is full or not. Note that if you set custom value for `badgeNumSet`, your config in here will be ignored, it's always `2` in that case.
 
 `0` - Don't check for number of cards to full set, this is more like a cards lister mode
 
