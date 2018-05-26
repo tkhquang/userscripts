@@ -55,10 +55,10 @@ Greasyfork.org (direct)
 ## INSTRUCTIONS
 
  1. Download and install Tampermonkey for your browser
- 2. Download the userscript above
- 3. Hit install when asked
- 4. (Optional) Configure your preferred settings in the code
- 5. Go to the Game Badge Page, if the script functions correctly then you will see a "Visit Trading Forum" button next to the "View cards in my Inventory" and "Sell these cards on the Market" within seconds. According to the deafault config, if you go to a Game Badge Page that you don't have enough cards to have a full set, the button won't appear. However, if you open the browser console (Pressing F12 if you're on Firefox), on 'console' tab with 'logs' filtered, if you see this line: "Number of cards you've owned: x", then you can tell that the script is running correctly. Also note that the script will only do the autofill part if you navigate directly from the Game Badge Page.
+ 2. Download the script
+ 3. Press install when asked
+ 4. (Optional) Configure your preferred settings in the script code
+ 5. Go to the Game Card Page, if the script functions correctly then you will see a "Visit Trading Forum" button next to the "View cards in my Inventory" and "Sell these cards on the Market" within seconds. According to the deafault config, if you go to a Game Card Page that you don't have enough cards to have a full set, the button won't appear. However, if you open the browser console (Pressing F12 if you're on Firefox), on 'console' tab with 'logs' filtered, if you see this line: "Number of cards you've owned: x", then you can tell that the script is running correctly. Also note that the script will only do the autofill part if you navigate directly from the Game Badge Page.
  6. Enjoy!
 
 ## FAQ
@@ -73,4 +73,4 @@ I'm not sure, you can tell if the script is running by opening the browser conso
 
 ### It works, the console says so but why can't I notice anything different?
 
-Open the script editor, uncomment those lines with `console.log` inside (Basically remove the `//` from `//console.log`. Go to the Game Card Page then grab some logs, then fire a new issue with those logs inside for me. I will see what I can do.
+Open the script editor, uncomment those lines with `console.log` inside (Basically remove the `//` from `//console.log`. Go to the Game Card Page then grab some logs, then fire a [new issue](https://github.com/tkhquang/userscripts/issues/new) with those logs inside for me. I will see what I can do.
