@@ -2,8 +2,8 @@
 // @name         Complete Your Set - Steam Forum Trading Helper
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      0.1
-// @description  Complete Your Set - Steam Forum Trading Helper
+// @version      0.2
+// @description  Automatically detects missing cards from a card set, help you auto fill in info New Trading Thread input area
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
 // @include      *://steamcommunity.com/*/*/gamecards/*
@@ -140,7 +140,7 @@
             console.log("You don't need to do trading for now");
             return;
         }
-        console.log("You can visite trading forum to complete your sets");
+        console.log("You can visit trading forum to complete your sets");
         calcTrade();
         getGameId();
         //if (!document.querySelector(".badge_card_to_collect_info")) getGameId();
