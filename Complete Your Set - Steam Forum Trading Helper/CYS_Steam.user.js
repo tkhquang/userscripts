@@ -3,7 +3,7 @@
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
 // @version      0.1
-// @description  Automatically detects missing cards from a card set, help you auto fill in info New Trading Thread input area
+// @description  Complete Your Set - Steam Forum Trading Helper
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
 // @include      *://steamcommunity.com/*/*/gamecards/*
@@ -26,8 +26,8 @@
     //2 - Only List Unowned Cards
     //Default is 0
     var badgeMode = 1;
-    //0 - Don't check for badge ready to craft, this is more like cards lister
-    //1 - Only check for badge that you have enough cards to craft
+    //0 - Don't check for number of cards to full set, this is more like a cards lister
+    //1 - Only check for game set that you have enough cards to make it full
     //2 - Complete your remaining set
     //Default is 1
     var badgeNumSet = 0;
@@ -52,20 +52,21 @@
         createButton();
     }
 
-    var ownedCards = document.querySelectorAll(".badge_card_set_card.owned");
     var owned = [];
 
     function getOwnedCards() {
+        let ownedCards = document.querySelectorAll(".badge_card_set_card.owned");
         for (let i=0; i < ownedCards.length; i++) {
             owned[i] = ownedCards[i].innerText;
             owned[i] = owned[i].replace(/ of .*/,"").split(/\n/);
         }
         //console.log(owned);
     }
-    var unownedCards = document.querySelectorAll(".badge_card_set_card.unowned");
+
     var unowned = [];
 
     function getUnownedCards() {
+        let unownedCards = document.querySelectorAll(".badge_card_set_card.unowned");
         for (let i=0; i < unownedCards.length; i++) {
             unowned[i] = unownedCards[i].innerText;
             unowned[i] = unowned[i].replace(/ of .*/,"").split(/\n/);
@@ -146,11 +147,11 @@
     }
 
     var haveList = [];
-    var dupCards;
     var wantList = [];
-    var needCards;
 
     function calcTrade() {
+        let dupCards;
+        let needCards;
         for (let i=0; i < allCards.length; i++) {
             if (totalCards[i] > badgeNum) {
                 let curCard = allCards[i];
