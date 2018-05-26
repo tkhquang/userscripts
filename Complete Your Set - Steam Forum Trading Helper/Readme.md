@@ -4,7 +4,7 @@
 
 ![Imgur](https://i.imgur.com/vvai5fT.png)
 
-[Imgur](https://i.imgur.com/p0KjMiD.gifv)
+[Gifv](https://i.imgur.com/p0KjMiD.gifv)
 
 ## INTRODUCTION
 
@@ -50,7 +50,7 @@ This was a small script I had made for myself to easily make new trade threads, 
 
 ## DOWNLOAD
 
-Greasyfork.org (direct)
+[Greasyfork.org](https://greasyfork.org/en/scripts/368518-complete-your-set-steam-forum-trading-helper)
 
 ## INSTRUCTIONS
 
