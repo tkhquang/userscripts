@@ -10,9 +10,9 @@
 
 This was a small script I had made for myself to easily make new trade threads, or to compare which cards I own and which I don't with the others existing threads. I've just edited it a little bit and decided to make it public. It is convenient and saves me a lot of time, so I think I may be useful for someone else too.
 
-*Why did I make it?* Sometimes Steam Trade Matcher couldn't help me complete some game sets. I had to use the Trading Forum to find the cards I wanted. The original idea of this script was to list all the cards I've owned have yet to own to complete a full set. Because when I navigate to the Trading Forum, I can't seem to remember which cards I'm looking for and which are the duplicated ones that I can trade them off. Having to switching between tabs is so inconvenient and tedious, so I made this script to list the Name and the #Number of the card in the Series to the input field of the New Trade Thread. Then I extended it a little bit to make the creating of new Trading Thread easier and also plus some small features.
+*Why did I make it?* Sometimes Steam Trade Matcher couldn't help me complete some game sets. I had to use the Trading Forum to find the cards I wanted. The original idea of this script was to list all the cards I've owned and have yet to own to complete a full set. Because when I navigate to the Trading Forum, I can't seem to remember which cards I'm looking for and which are the duplicated ones that I can trade them off. Having to switching between tabs is so inconvenient and tedious, so I made this script to list the Name and the #Number of the card in the Series to the input field of the New Trade Thread. Then I extended it a little bit to make the creating of new Trading Thread easier and also plus some small features.
 
-Summer sale is coming near, I hope this will be useful for you to complete your remainding sets.
+Summer sale is coming near, I hope this will be useful for you to complete your remaining sets.
 
 ## FEATURES
 
@@ -62,7 +62,7 @@ Summer sale is coming near, I hope this will be useful for you to complete your 
  2. Download the script
  3. Press install when asked
  4. (Optional) Configure your preferred settings in the script code
- 5. Go to the Game Card Page, if the script functions correctly then you will see a "Visit Trading Forum" button next to the "View cards in my Inventory" and "Sell these cards on the Market" within seconds. According to the deafault config, if you go to a Game Card Page that you don't have enough cards to have a full set, the button won't appear. However, if you open the browser console (Pressing F12 if you're on Firefox), on 'console' tab with 'logs' filtered, if you see this line: "Number of cards you've owned: x", then you can tell that the script is running correctly. Also note that the script will only do the autofill part if you navigate directly from the Game Badge Page.
+ 5. Go to the Game Card Page, if the script functions correctly then you will see a "Visit Trading Forum" button next to the "View cards in my Inventory" and "Sell these cards on the Market" within seconds. According to the default config, if you go to a Game Card Page that you don't have enough cards to have a full set, the button won't appear. However, if you open the browser console (Pressing F12 if you're on Firefox), on 'console' tab with 'logs' filtered, if you see this line: "Number of cards you've owned: x", then you can tell that the script is running correctly.
  6. Enjoy!
 
 ## FAQ
