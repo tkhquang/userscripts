@@ -161,7 +161,7 @@ function calcTrade() {
                 curCard[1]
             ]);
         }
-        if (totalCards[i] < badgeNum) {
+        if (totalCards[i] < badgeNum||badgeMode === 0&&totalCards[i]==badgeNum) {
             let curCard = allCards[i];
             if (badgeMode !== 0) needCards = badgeNum - totalCards[i];
             if (badgeMode === 0) needCards = Number(totalCards[i]);
