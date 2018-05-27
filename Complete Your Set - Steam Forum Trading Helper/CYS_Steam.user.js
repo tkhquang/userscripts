@@ -195,6 +195,7 @@ function getGameId() {
 function inTrade() {
     if (document.querySelector(".btn_darkblue_white_innerfade.btn_medium.responsive_OnClickDismissMenu") === null) {
         console.log("CYS - Something is wrong, have you logged in?");
+        return;
     }
     if (!window.localStorage.cardTrade) return;
     document.querySelector(".btn_darkblue_white_innerfade.btn_medium.responsive_OnClickDismissMenu").click();
