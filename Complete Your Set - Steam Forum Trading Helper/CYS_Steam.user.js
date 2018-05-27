@@ -2,7 +2,7 @@
 // @name         Complete Your Set - Steam Forum Trading Helper
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      0.4
+// @version      0.5
 // @description  Automatically detects missing cards from a card set, help you auto fill in info New Trading Thread input area
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -23,7 +23,7 @@ var tradeMode = 0;
 //1 - Only List Owned Cards
 //2 - Only List Unowned Cards
 //Default is 0
-var badgeMode = 1;
+var badgeMode = 0;
 //0 - Don't check for number of cards to full set, this is more like a cards lister
 //1 - Only check for game set that you have enough cards to make it full
 //2 - Complete your remaining set
@@ -41,12 +41,29 @@ var wantListTextTitle = "[W] ";
 
 //Functions
 
+var replaceOwned = new Map([
+    [/\s{2,}/g, " "],
+    [/\s(\d+)\ of \d\, Series \d\s$/, "=.=$1"],
+    [/^\s\((\d+)\)\s/, "$1=.="]
+]);
+var replaceUnowned = new Map([
+    [/\s{2,}/g, " "],
+    [/\s(\d+)\ of \d\, Series \d\s$/, "=.=$1"],
+    [/^\s/, "0=.="]
+]);
+function clean(str, replacements) {
+    replacements.forEach(function(value, key){
+        str = str.replace(key, value);
+    });
+    return str;
+}
+
 var owned = [];
 function getOwnedCards() {
     let ownedCards = document.querySelectorAll(".badge_card_set_card.owned");
     for (let i=0; i < ownedCards.length; i++) {
-        owned[i] = ownedCards[i].innerText;
-        owned[i] = owned[i].replace(/ of .*/,"").split(/\n/);
+        owned[i] = clean(ownedCards[i].textContent,replaceOwned);
+        owned[i] = owned[i].split("=.=");
     }
     //console.log(owned);
 }
@@ -55,9 +72,8 @@ var unowned = [];
 function getUnownedCards() {
     let unownedCards = document.querySelectorAll(".badge_card_set_card.unowned");
     for (let i=0; i < unownedCards.length; i++) {
-        unowned[i] = unownedCards[i].innerText;
-        unowned[i] = unowned[i].replace(/ of .*/,"").split(/\n/);
-        unowned[i].splice(0, 0, "(0)");
+        unowned[i] = clean(unownedCards[i].textContent,replaceUnowned);
+        unowned[i] = unowned[i].split("=.=");
     }
     //console.log(unowned);
 }
@@ -74,7 +90,7 @@ var total = 0;
 function getTotal() {
     for (let i=0; i < allCards.length; i++) {
         let curCard = allCards[i];
-        totalCards.push(curCard[0].match(/\d+/));
+        totalCards.push(curCard[0]);
         total += Number(totalCards[i]);
     }
     //console.log(totalCards);
