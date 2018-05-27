@@ -196,6 +196,7 @@ function inTrade() {
     if (document.querySelector(".btn_darkblue_white_innerfade.btn_medium.responsive_OnClickDismissMenu") === null) {
         console.log("CYS - Something is wrong, have you logged in?");
     }
+    if (!window.localStorage.cardTrade) return;
     document.querySelector(".btn_darkblue_white_innerfade.btn_medium.responsive_OnClickDismissMenu").click();
     document.querySelector(".forumtopic_reply_textarea").textContent = JSON.parse(localStorage.cardTrade)[0] + customBody;
     document.querySelector(".forum_topic_input").value = JSON.parse(localStorage.cardTrade)[1] + customTitle;
