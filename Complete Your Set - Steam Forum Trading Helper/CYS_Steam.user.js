@@ -43,12 +43,12 @@ var wantListTextTitle = "[W] ";
 
 var replaceOwned = new Map([
     [/\s{2,}/g, " "],
-    [/\s(\d+)\ of \d\, Series \d\s$/, "=.=$1"],
+    [/\s(\d+)\ of \d+\, Series \d+\s$/, "=.=$1"],
     [/^\s\((\d+)\)\s/, "$1=.="]
 ]);
 var replaceUnowned = new Map([
     [/\s{2,}/g, " "],
-    [/\s(\d+)\ of \d\, Series \d\s$/, "=.=$1"],
+    [/\s(\d+)\ of \d+\, Series \d+\s$/, "=.=$1"],
     [/^\s/, "0=.="]
 ]);
 function clean(str, replacements) {
