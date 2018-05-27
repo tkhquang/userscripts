@@ -42,7 +42,6 @@ function getGameId() {
     for(let i=0; i < pathParts.length; i++) {
         if(/^[0-9]+$/.test(pathParts[i])) {
             gameId = pathParts[i];
-            break;
         }
     }
     tradeForum = "https://steamcommunity.com/app/" + gameId + "/tradingforum/";
