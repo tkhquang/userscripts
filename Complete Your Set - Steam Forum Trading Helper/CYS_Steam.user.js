@@ -23,7 +23,7 @@ var tradeMode = 0;
 //1 - Only List Owned Cards
 //2 - Only List Unowned Cards
 //Default is 0
-var badgeMode = 0;
+var badgeMode = 1;
 //0 - Don't check for number of cards to full set, this is more like a cards lister
 //1 - Only check for game set that you have enough cards to make it full
 //2 - Complete your remaining set
