@@ -2,7 +2,7 @@
 // @name         Complete Your Set - Steam Forum Trading Helper
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      0.5
+// @version      0.6
 // @description  Automatically detects missing cards from a card set, help you auto fill in info New Trading Thread input area
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -58,31 +58,47 @@ function clean(str, replacements) {
     return str;
 }
 
-var owned = [];
 function getOwnedCards() {
     let ownedCards = document.querySelectorAll(".badge_card_set_card.owned");
+    let owned = [];
     for (let i=0; i < ownedCards.length; i++) {
         owned[i] = clean(ownedCards[i].textContent,replaceOwned);
         owned[i] = owned[i].split("=.=");
     }
     //console.log(owned);
+    return owned;
 }
 
-var unowned = [];
 function getUnownedCards() {
     let unownedCards = document.querySelectorAll(".badge_card_set_card.unowned");
+    let unowned = [];
     for (let i=0; i < unownedCards.length; i++) {
         unowned[i] = clean(unownedCards[i].textContent,replaceUnowned);
         unowned[i] = unowned[i].split("=.=");
     }
     //console.log(unowned);
+    return unowned;
+}
+
+function sort(arr, index) {
+    let sort = [];
+    sort = Array(arr.length).fill().map((v,i)=>i+1);
+    arr = arr.map(function(item) {
+        var n = sort.indexOf(Number(item[index]));
+        sort[n] = "";
+        return [n, item];
+    }).sort().map(function(j) {
+        return j[1];
+    });
+    return arr;
 }
 
 var allCards = [];
 function getAllCards() {
-    allCards = owned.concat(unowned);
-    //console.log(allCards);
+    let ulallCards = getOwnedCards().concat(getUnownedCards());
+    allCards = sort(ulallCards, 2);
     getTotal();
+    //console.log(allCards);
 }
 
 var totalCards = [];
@@ -142,7 +158,7 @@ function badgeCheck() {
     }
     console.log("You can visit trading forum to complete your sets");
     calcTrade();
-    getGameId();
+    createButton();
     //if (!document.querySelector(".badge_card_to_collect_info")) getGameId();
 }
 
@@ -162,7 +178,7 @@ function calcTrade() {
                 curCard[1]
             ]);
         }
-        if (totalCards[i] < badgeNum||badgeMode === 0&&totalCards[i]==badgeNum) {
+        if (totalCards[i] < badgeNum||badgeMode===0&&totalCards[i]==badgeNum) {
             let curCard = allCards[i];
             if (badgeMode !== 0) needCards = badgeNum - totalCards[i];
             if (badgeMode === 0) needCards = Number(totalCards[i]);
@@ -196,16 +212,9 @@ function createText() {
     wantListTextTitle = wantListTextTitle.replace(/\), $/, ")");
     window.localStorage.cardTrade = JSON.stringify([
         haveListText+"\n"+wantListText,
-        haveListTextTitle + wantListTextTitle
+        haveListTextTitle + wantListTextTitle,
+        window.location.pathname.split("/")[4]
     ]);
-}
-
-var tradeForum;
-function getGameId() {
-    let gameId = window.location.pathname.split("/")[4];
-    tradeForum = "https://steamcommunity.com/app/" + gameId + "/tradingforum/";
-    //console.log("Game ID: " + gameId); console.log(tradeForum);
-    createButton();
 }
 
 function inTrade() {
@@ -213,16 +222,19 @@ function inTrade() {
         console.log("CYS - Something is wrong, have you logged in?");
         return;
     }
-    if (!window.localStorage.cardTrade) return;
     document.querySelector(".btn_darkblue_white_innerfade.btn_medium.responsive_OnClickDismissMenu").click();
     document.querySelector(".forumtopic_reply_textarea").textContent = JSON.parse(localStorage.cardTrade)[0] + customBody;
     document.querySelector(".forum_topic_input").value = JSON.parse(localStorage.cardTrade)[1] + customTitle;
+    setTimeout(function(){
+        window.localStorage.removeItem("cardTrade");
+        console.log("CYS - Local Storage Cleared");
+    }, 1000);
 }
 
 function createButton() {
     var a = document.createElement("a");
     a.className = "btn_grey_grey btn_medium";
-    a.href = tradeForum;
+    a.href = "https://steamcommunity.com/app/"+window.location.pathname.split("/")[4]+"/tradingforum/";
     a.innerHTML = "<span>Visit Trading Forum</span>";
     document.querySelector(".gamecards_inventorylink").appendChild(a);
 }
@@ -255,11 +267,13 @@ function configCheck(value) {
             window.localStorage.removeItem("cardTrade");
             console.log("CYS - Local Storage Cleared");
         }
-        getOwnedCards();
-        getUnownedCards();
-        setTimeout(getAllCards, 1000);
+        getAllCards();
     }
-    if (/gamecards/.test(document.referrer)) {
-        setTimeout(inTrade, 2000);
+    if (window.location.pathname.match("/tradingforum")){
+        if (!window.localStorage.cardTrade) {
+            console.log("CYS - No Stored Trade Info In Storage");
+            return;
+        }
+        if (window.location.pathname.match(JSON.parse(localStorage.cardTrade)[2])) setTimeout(inTrade,2000);
     }
 })();
