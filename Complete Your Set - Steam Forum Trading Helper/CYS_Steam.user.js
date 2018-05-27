@@ -227,12 +227,12 @@ function configCheck(value) {
 (function() {
     "use strict";
 
-    if (document.querySelector(".gamecards_inventorylink") === null) return;
     if (configCheck(true)) {
         alert("CYS - Invalid Config Settings\nPlease Check Again!");
         return;
     }
     if (/gamecards/.test(window.location.pathname) === true) {
+        if (document.querySelector(".gamecards_inventorylink") === null) return;
         if (window.localStorage.cardTrade) {
             window.localStorage.removeItem("cardTrade");
             console.log("CYS - Local Storage Cleared");
