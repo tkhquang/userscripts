@@ -2,7 +2,7 @@
 // @name         Complete Your Set - Steam Forum Trading Helper
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      0.3
+// @version      0.4
 // @description  Automatically detects missing cards from a card set, help you auto fill in info New Trading Thread input area
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -34,23 +34,14 @@ var badgeNumSet = 0;
 //Default is 0
 var customBody = "\n[1:1] Trading";
 var customTitle = " [1:1]";
+var haveListText = "[H]\n";
+var wantListText = "[W]\n";
+var haveListTextTitle = "[H] ";
+var wantListTextTitle = "[W] ";
 
-var tradeForum;
-function getGameId() {
-    let gameId;
-    let pathParts = window.location.pathname.split("/");
-    for(let i=0; i < pathParts.length; i++) {
-        if(/^[0-9]+$/.test(pathParts[i])) {
-            gameId = pathParts[i];
-        }
-    }
-    tradeForum = "https://steamcommunity.com/app/" + gameId + "/tradingforum/";
-    //console.log("Game ID: " + gameId); console.log(tradeForum);
-    createButton();
-}
+//Functions
 
 var owned = [];
-
 function getOwnedCards() {
     let ownedCards = document.querySelectorAll(".badge_card_set_card.owned");
     for (let i=0; i < ownedCards.length; i++) {
@@ -61,7 +52,6 @@ function getOwnedCards() {
 }
 
 var unowned = [];
-
 function getUnownedCards() {
     let unownedCards = document.querySelectorAll(".badge_card_set_card.unowned");
     for (let i=0; i < unownedCards.length; i++) {
@@ -73,7 +63,6 @@ function getUnownedCards() {
 }
 
 var allCards = [];
-
 function getAllCards() {
     allCards = owned.concat(unowned);
     //console.log(allCards);
@@ -82,7 +71,6 @@ function getAllCards() {
 
 var totalCards = [];
 var total = 0;
-
 function getTotal() {
     for (let i=0; i < allCards.length; i++) {
         let curCard = allCards[i];
@@ -95,7 +83,6 @@ function getTotal() {
 }
 
 var badgeNum;
-
 function badgeCheck() {
     if (badgeNumSet !== 0) {
         badgeMode = 2;
@@ -145,7 +132,6 @@ function badgeCheck() {
 
 var haveList = [];
 var wantList = [];
-
 function calcTrade() {
     let dupCards;
     let needCards;
@@ -175,11 +161,6 @@ function calcTrade() {
     createText();
 }
 
-var haveListText = "[H]\n";
-var wantListText = "[W]\n";
-var haveListTextTitle = "[H] ";
-var wantListTextTitle = "[W] ";
-
 function createText() {
     for (let i=0; i < haveList.length; i++) {
         if (tradeMode !== 2 && haveList.length > 0) {
@@ -201,6 +182,14 @@ function createText() {
         haveListText+"\n"+wantListText,
         haveListTextTitle + wantListTextTitle
     ]);
+}
+
+var tradeForum;
+function getGameId() {
+    let gameId = window.location.pathname.split("/")[4];
+    tradeForum = "https://steamcommunity.com/app/" + gameId + "/tradingforum/";
+    //console.log("Game ID: " + gameId); console.log(tradeForum);
+    createButton();
 }
 
 function inTrade() {
@@ -238,6 +227,7 @@ function configCheck(value) {
 (function() {
     "use strict";
 
+    if (document.querySelector(".gamecards_inventorylink") === null) return;
     if (configCheck(true)) {
         alert("CYS - Invalid Config Settings\nPlease Check Again!");
         return;
