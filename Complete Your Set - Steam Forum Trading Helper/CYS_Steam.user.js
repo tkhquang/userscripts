@@ -2,8 +2,8 @@
 // @name         Complete Your Set - Steam Forum Trading Helper
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      0.6
-// @description  Automatically detects missing cards from a card set, help you auto fill in info New Trading Thread input area
+// @version      0.7
+// @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
 // @homepage     https://greasyfork.org/en/scripts/368518-complete-your-set-steam-forum-trading-helper/
@@ -11,7 +11,9 @@
 // @match        *://steamcommunity.com/app/*/tradingforum/*
 // @match        *://steamcommunity.com/app/*/tradingforum
 // @run-at       document-idle
-// @grant        none
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_deleteValue
 // ==/UserScript==
 
 var tradeTag = 2;
@@ -32,6 +34,9 @@ var badgeNumSet = 0;
 //0 - Don't set a target number of Card Sets
 //Others - Set a target number for Card Sets - This will also set 'badgeMode = 2'
 //Default is 0
+var useLocalStorage = false;
+//Use HTML5 Local Storage instead, set this to true if you're using Greasemonkey
+//Default is false
 var customBody = "\n[1:1] Trading";
 var customTitle = " [1:1]";
 var haveListText = "[H]\n";
@@ -40,6 +45,8 @@ var haveListTextTitle = "[H] ";
 var wantListTextTitle = "[W] ";
 
 //Functions
+
+var CYSstorage = {};
 
 var replaceOwned = new Map([
     [/\s{2,}/g, " "],
@@ -158,8 +165,6 @@ function badgeCheck() {
     }
     console.log("You can visit trading forum to complete your sets");
     calcTrade();
-    createButton();
-    //if (!document.querySelector(".badge_card_to_collect_info")) getGameId();
 }
 
 var haveList = [];
@@ -210,11 +215,19 @@ function createText() {
     }
     haveListTextTitle = haveListTextTitle.replace(/\), $/, ") ");
     wantListTextTitle = wantListTextTitle.replace(/\), $/, ")");
-    window.localStorage.cardTrade = JSON.stringify([
+    let CYStext = JSON.stringify([
         haveListText+"\n"+wantListText,
         haveListTextTitle + wantListTextTitle,
-        window.location.pathname.split("/")[4]
+        window.location.pathname.split("/")[4],
+        Date.now()
     ]);
+    //console.log(CYStext);
+    if (!useLocalStorage) {
+        GM_setValue("CYS-STORAGE", CYStext);
+    } else {
+        window.localStorage.cardTrade = CYStext;
+    }
+    createButton();
 }
 
 function inTrade() {
@@ -223,11 +236,15 @@ function inTrade() {
         return;
     }
     document.querySelector(".btn_darkblue_white_innerfade.btn_medium.responsive_OnClickDismissMenu").click();
-    document.querySelector(".forumtopic_reply_textarea").textContent = JSON.parse(localStorage.cardTrade)[0] + customBody;
-    document.querySelector(".forum_topic_input").value = JSON.parse(localStorage.cardTrade)[1] + customTitle;
+    document.querySelector(".forumtopic_reply_textarea").textContent = CYSstorage.storageItem[0] + customBody;
+    document.querySelector(".forum_topic_input").value = CYSstorage.storageItem[1] + customTitle;
     setTimeout(function(){
-        window.localStorage.removeItem("cardTrade");
-        console.log("CYS - Local Storage Cleared");
+        if (!useLocalStorage) {
+            GM_deleteValue("CYS-STORAGE");
+        } else {
+            window.localStorage.removeItem("cardTrade");
+        }
+        console.log("CYS - "+CYSstorage.storageType+" Storage Cleared");
     }, 1000);
 }
 
@@ -239,41 +256,86 @@ function createButton() {
     document.querySelector(".gamecards_inventorylink").appendChild(a);
 }
 
-function configCheck(value) {
-    var numChecks = [
-        !Number.isInteger(tradeTag),
-        !Number.isInteger(tradeMode),
-        !Number.isInteger(badgeMode),
-        !Number.isInteger(badgeNumSet),
-        tradeTag < 1 || tradeTag > 2,
-        tradeMode < 0 || tradeMode > 2,
-        badgeMode < 0 || badgeMode > 2,
-        badgeNumSet < 0];
-    return numChecks.some(function(config) {
+var numChecks = [
+    !(Number.isInteger(badgeNumSet)&&badgeNumSet>=0),
+    [1,2].indexOf(tradeTag)==-1,
+    [0,1,2].indexOf(tradeMode)==-1,
+    [0,1,2].indexOf(badgeMode)==-1,
+    typeof(useLocalStorage)!=="boolean"
+], GMChecks = [
+    typeof GM_setValue!=="undefined",
+    typeof GM_getValue!=="undefined",
+    typeof GM_deleteValue!=="undefined"
+];
+function configCheck(condi,value) {
+    return condi.some(function(config) {
         return config === value;
     });
+}
+
+function getStorage(mode) {
+    let storageItem, storageInv, storageType;
+    if (!mode) {
+        if ((GM_getValue("CYS-STORAGE"))&&((GM_getValue("CYS-STORAGE")).length>0)) {
+            storageInv = GM_getValue("CYS-STORAGE");
+            storageItem = JSON.parse(GM_getValue("CYS-STORAGE"));
+        }
+        storageType = "GM";
+    }
+    if (mode) {
+        if ((window.localStorage.cardTrade)&&(window.localStorage.cardTrade.length>0)) {
+            storageInv = window.localStorage.cardTrade;
+            storageItem = JSON.parse(localStorage.cardTrade);
+        }
+        storageType = "Local";
+    }
+    return {storageType,storageInv,storageItem};
 }
 
 (function() {
     "use strict";
 
-    if (configCheck(true)) {
+    if (configCheck(numChecks,true)) {
         alert("CYS - Invalid Config Settings\nPlease Check Again!");
         return;
     }
-    if (/gamecards/.test(window.location.pathname) === true) {
-        if (document.querySelector(".gamecards_inventorylink") === null) return;
-        if (window.localStorage.cardTrade) {
-            window.localStorage.removeItem("cardTrade");
-            console.log("CYS - Local Storage Cleared");
+    if ((!useLocalStorage)&&configCheck(GMChecks,false)) {
+        useLocalStorage=true;
+        console.log("CYS - GM functions are not defined - Switch to use HTML5 Local Storage instead");
+    }
+    CYSstorage = getStorage(useLocalStorage);
+    if (/\/gamecards/.test(window.location.pathname)) {
+        if (document.querySelector(".gamecards_inventorylink") === null) {
+            console.log("Not your profile?");
+            return;
+        }
+        if (CYSstorage.storageInv) {
+            if (!useLocalStorage) {
+                GM_deleteValue("CYS-STORAGE");
+            } else {
+                window.localStorage.removeItem("cardTrade");
+            }
+            console.log("CYS - "+CYSstorage.storageType+" Storage Cleared");
         }
         getAllCards();
     }
-    if (window.location.pathname.match("/tradingforum")){
-        if (!window.localStorage.cardTrade) {
+    if (/\/tradingforum/.test(window.location.pathname)) {
+        if (!CYSstorage.storageInv) {
             console.log("CYS - No Stored Trade Info In Storage");
             return;
         }
-        if (window.location.pathname.match(JSON.parse(localStorage.cardTrade)[2])) setTimeout(inTrade,2000);
+        if ((new RegExp(CYSstorage.storageItem[2])).test(window.location.pathname)) {
+            let storedTime = Date.now()-CYSstorage.storageItem[3];
+            console.log("CYS - Time: "+storedTime+"ms");
+            if (storedTime>21600000) {
+                if (window.confirm("CYS - It's been more than 6 hours since you checked your cards\n" +
+                                   "It's better to check again\n"+
+                                   "Press OK to go to your GameCard Page")) {
+                    window.open("https://steamcommunity.com/my/gamecards/"+CYSstorage.storageItem[2],"_blank");
+                    return;
+                }
+            }
+            setTimeout(inTrade,1000);
+        }
     }
 })();
