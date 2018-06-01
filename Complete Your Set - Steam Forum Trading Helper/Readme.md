@@ -20,41 +20,9 @@ Summer sale is coming near, I hope this will be useful for you to complete your 
 2. Can check the missing cards to complete the set
 3. Automatically create and have it auto filled in the input areas in New Trading Thread arcoding to your config in the script
 
-## CONFIGURATIONS
-
-**tradeTag** - This is the name of the cards which will appear in the title of your trading thread
-
-   `1` - #Number of Set, for example: `2 of 5, Series 1`, then it will be `2` in the title
-
-   `2` - Show the card's name in title
-
-**tradeMode** - This sets how your Card-List will be created
-
-`0` - List both Owned and Unonwed Cards
-
-`1` - Only List Owned Cards
-
-`2` - Only List Unowned Cards
-
-**badgeMode** - This sets the way the script checks if your card set is full or not. Note that if you set custom value for `badgeNumSet`, your config in here will be ignored, it's always `2` in that case.
-
-`0` - Don't check for number of cards to full set, this is more like a cards lister mode
-
-`1` - Only check for game set that you have enough cards to make it full, this means if you navigate to the badge page of a game that you don't have enough cards to have a full set. The script will stop running as soon as it's done checking.
-
-`2` - Complete your remaining set. Unlike `1`, the script will continue to run, then it lists the missing cards to complete that badge, but only if you have at least one card in the incomplete set. For example, if you have `2 of 5` in the set, the script will then list the rest of the series to you Want-List.
-
-**badgeNumSet** - Set a reaching target for the number of full sets
-
-`0` - None
-
-`Integers > 0` - Set a target number for Card Sets - This will also set `badgeMode = 2`
-
-**customBody**, **customTitle** - Set the text which will appear after the tite and content of your Trading Thread. Default values are `"\n[1:1] Trading"` and `" [1:1]"`, you can always empty them by setting the value to `""`. Site note: to make a linebreak here you have to use `\n` like the one in the default value.
-
 ## DOWNLOAD
 
-[Greasyfork.org](https://greasyfork.org/en/scripts/368518-complete-your-set-steam-forum-trading-helper)
+[Greasyfork.org](https://greasyfork.org/en/scripts/368518-steam-community-complete-your-set-steam-forum-trading-helper)
 
 ## INSTRUCTIONS
 
