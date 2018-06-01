@@ -190,7 +190,6 @@ function readInfo(cardInfo,calcTrade,CYSstorage) {
                                 : "You need "+remainCards(numSet)+" more card(s) to get some full set(s)");
                 } else {
                     if (fullSetUnowned) {
-                        console.log("fullSetUnowned");
                         numSet = Math.floor(setDiff + 1);
                         tradeNeed = true;
                         if (remainCards(numSet)!==info.set&&info.qtyDiff) {
@@ -198,7 +197,6 @@ function readInfo(cardInfo,calcTrade,CYSstorage) {
                         } else console.log((info.qtyDiff) ? "Your cards are enough to get a full set" : "You need a whole full set");
                         break;
                     } else {
-                        console.log("!!!fullSetUnowned");
                         numSet = Math.floor(setDiff);console.log(numSet);
                         console.warn("(CYS) You need a whole full set - Script stopped according to your configurations (fullSetUnowned = false)");
                         break;
@@ -303,7 +301,7 @@ function getStorage(mode) {
             return;
         } else if ((new RegExp(CYSstorage.storageItem(2))).test(window.location.pathname)) {
             let storedTime = Date.now() - CYSstorage.storageItem(3);
-            console.log("CYS - Time: "+storedTime+"ms");
+            console.log("(CYS) Time: "+storedTime+"ms");
             if (storedTime>21600000) {
                 if (window.confirm("(CYS) It's been more than 6 hours since you checked your cards\n" +
                                    "It's better to check again\n"+
