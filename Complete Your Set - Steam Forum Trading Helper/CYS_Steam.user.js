@@ -2,7 +2,7 @@
 // @name         Complete Your Set - Steam Forum Trading Helper
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      0.8
+// @version      0.9
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
