@@ -138,7 +138,7 @@ function badgeCheck() {
                 console.log("Your cards are enough to craft " + badgeNum + " badge(s)");
                 break;
             case 2:
-                var remainSet = (total / allCards.length !== 1) ? true : false;
+                var remainSet = !Number.isInteger(total / allCards.length) ? true : false;
                 if (remainSet === true) {
                     badgeNum = Math.floor(total / allCards.length + 1);
                     console.log("You need some cards to complete your remaining set\nTotal: "+badgeNum);
