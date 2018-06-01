@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Complete Your Set - Steam Forum Trading Helper
+// @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
 // @version      1.0
