@@ -16,8 +16,6 @@
 // @grant        GM_deleteValue
 // ==/UserScript==
 
-/* jshint esversion: 6 */
-
 // ==Configuration==
 const tradeTag = 2;//1 = #Number of Set in Title//2 = Card Name in Title
 const tradeMode = 0;//0 = List both Owned and Unonwed Cards//1 = Only List Owned Cards, 2 = Only List Unowned Cards
