@@ -2,7 +2,7 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.1
+// @version      1.11
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -16,6 +16,8 @@
 // @grant        GM_deleteValue
 // ==/UserScript==
 
+/*jshint esversion: 6*/
+
 // ==Configuration==
 const tradeTag = 2;//1 = #Number of Set in Title//2 = Card Name in Title
 const tradeMode = 0;//0 = List both Owned and Unonwed Cards//1 = Only List Owned Cards, 2 = Only List Unowned Cards
@@ -25,7 +27,7 @@ const fullSetTarget = 0;//0 = Don't set a target number of Card Sets//Integer > 
 const fullSetUnowned = true;//Check for sets that you're missing a whole full set? This has no effect if fullSetMode = 1
 const fullSetStacked = false;//false = Will check for the nearest number of your card set, even if you have enough cards to have 2, 3 more set
 const useLocalStorage = false;//Use HTML5 Local Storage instead, set this to true if you're using Greasemonkey
-const steamID64 = "";//Your steamID64, needed for fetch trade data directly from trade forum
+const steamID64 = "";//Your steamID64, needed for fetching trade data directly from trade forum
 const customSteamID = "";//If you have set a custom ID for you Steam account, set this
 const customTitle = " [1:1]";
 const customBody = "\n[1:1] Trading";
@@ -38,7 +40,7 @@ const wantListBody = "[W]\n";
 //Codes
 
 function getInfo(doc) {
-    var ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty;
+    var ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;
 
     function clean(str,replacements) {
         replacements = (replacements) ? new Map([
@@ -94,7 +96,7 @@ function getInfo(doc) {
     arrCards.forEach(function(card) {
         let curQty = Number(card[0]);
         if (arrCards[0][0] !== card[0]) qtyDiff = true;
-        lowestQty = (!lowestQty||curQty<=lowestQty) ? curQty : lowestQty;
+        if (curQty<lowestQty) lowestQty = curQty;
         total += curQty;
         objCards["card"+card[2]] = {
             "order":Number(card[2]),
@@ -197,7 +199,7 @@ function readInfo(cardInfo,calcTrade,CYSstorage) {
             case 2:
                 remainSet = (!Number.isInteger(setDiff)||Number.isInteger(setDiff)&&info.qtyDiff) ? true : false;
                 if (remainSet) {
-                    numSet = (fullSetStacked) ? Math.floor(setDiff + 1) : info.lowestQty + 1;
+                    numSet = (fullSetStacked) ? Math.floor(setDiff + 1) : info.lowestQty+1;
                     tradeNeed = true;
                     console.log((Number.isInteger(setDiff)) ? "Your cards are enough to get a full set"
                                 : "You need "+remainCards(numSet)+" more card(s) to get some full set(s)");
