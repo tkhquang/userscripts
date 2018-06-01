@@ -6,7 +6,7 @@
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
-// @homepage     https://greasyfork.org/en/scripts/368518-complete-your-set-steam-forum-trading-helper/
+// @homepage     https://greasyfork.org/en/scripts/368518-steam-community-complete-your-set-steam-forum-trading-helper
 // @match        *://steamcommunity.com/*/*/gamecards/*
 // @match        *://steamcommunity.com/app/*/tradingforum/*
 // @match        *://steamcommunity.com/app/*/tradingforum
