@@ -70,8 +70,8 @@ function getInfo(doc,CYSstorage) {
     var ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;    
     var userLang = null;
     var getUserLang = (function getUserLang() {
-        if (yourLanguage.length>0) return langList[yourLanguage];
-        else if (CYSstorage==="fetch") return langList.english;
+        if (CYSstorage==="fetch") return langList.english;
+        else if (yourLanguage.length>0) return langList[yourLanguage];
         else {
             let tempLang = null;
             var cookieLang = (document.cookie.match(/Steam_Language=(\w+)/)) ? document.cookie.match(/Steam_Language=(\w+)/)[1] : null;
