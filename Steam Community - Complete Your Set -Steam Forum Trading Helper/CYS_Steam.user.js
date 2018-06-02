@@ -16,6 +16,8 @@
 // @grant        GM_deleteValue
 // ==/UserScript==
 
+/*jshint esversion: 6 */
+
 // ==Configuration==
 const tradeTag = 2;//1 = #Number of Set in Title//2 = Card Name in Title
 const tradeMode = 0;//0 = List both Owned and Unonwed Cards//1 = Only List Owned Cards, 2 = Only List Unowned Cards
@@ -222,7 +224,7 @@ function readInfo(cardInfo,calcTrade,CYSstorage) {
 }
 
 function inTrade(CYSstorage,disBtn) {
-    if (!disBtn.length===0) return;
+    if (disBtn.length===0) return;
     disBtn[0].click();
     document.getElementsByClassName("forumtopic_reply_textarea")[0].value = CYSstorage.storageItem(0) + customBody;
     document.getElementsByClassName("forum_topic_input")[0].value = CYSstorage.storageItem(1) + customTitle;
@@ -317,7 +319,7 @@ function passiveFetch() {
 }
 
 function fetchButton(subsBtn,tradeofBtn) {
-    if (subsBtn.length===0&&!tradeofBtn.length===0) return;
+    if (subsBtn.length===0&&tradeofBtn.length===0) return;
     var btn = (subsBtn[0]||tradeofBtn[0]);
     const a = document.createElement("a");
     a.className = (subsBtn.length>0) ? "btn_grey_black btn_medium" : "btn_darkblue_white_innerfade btn_medium";
