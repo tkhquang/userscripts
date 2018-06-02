@@ -2,7 +2,7 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.3
+// @version      1.31
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -26,7 +26,7 @@ const fullSetUnowned = true;//Check for sets that you're missing a whole full se
 const fullSetStacked = false;//false = Will check for the nearest number of your card set, even if you have enough cards to have 2, 3 more set
 const useLocalStorage = false;//Use HTML5 Local Storage instead, set this to true if you're using Greasemonkey
 const steamID64 = "";//Your steamID64, needed for fetch trade data directly from trade forum
-const yourLanguage = "";//Check the Langlist below, if you don't see your Language there, please contact me. Must be set to be the same with you steam language
+const yourLanguage = "";//If things are alright, don't touch this. Check the Langlist below, if you don't see your Language there, please contact me.
 const customSteamID = "";//If you have set a custom ID for you Steam account, set this
 const customTitle = " [1:1]";
 const customBody = "\n[1:1] Trading";
@@ -67,24 +67,25 @@ const langList = {
 
 //Codes
 function getInfo(doc,CYSstorage) {
-    var ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;    
+    var ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;
     var userLang = null;
     var getUserLang = (function getUserLang() {
-        if (CYSstorage==="fetch") return langList.english;
-        else if (yourLanguage.length>0) return langList[yourLanguage];
+        if (CYSstorage==="fetch") return "english";
+        else if (yourLanguage.length>0) return yourLanguage;
         else {
-            let tempLang = null;
-            var cookieLang = (document.cookie.match(/Steam_Language=(\w+)/)) ? document.cookie.match(/Steam_Language=(\w+)/)[1] : null;
-            tempLang = (Object.keys(langList).indexOf(cookieLang)>-1) ? langList[cookieLang] : null;
-            return tempLang;
+            let cookieLang = (document.cookie.match(/Steam_Language=(\w+)/)) ? document.cookie.match(/Steam_Language=(\w+)/)[1] : null;
+            return cookieLang;
         }
     })();
-    if (!getUserLang) {
+    if (getUserLang!==null&&Object.keys(langList).indexOf(getUserLang)>-1) {
+        userLang = langList[getUserLang];
+        console.log((CYSstorage!=="fetch") ? `Your current language: ${getUserLang}` : "Fetching your data...");
+    } else {
         alert("Couldn't detect you current language using cookies\n"+
               "Or your language setting in the script not right\n"+
               "Please set your Language in the script settings then try again");
         return;
-    } else userLang = getUserLang;
+    }
     function clean(str,replacements) {
         replacements = (replacements) ? new Map([
             [/\s+/gm, " "],
