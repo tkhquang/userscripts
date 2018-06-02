@@ -2,7 +2,7 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.31
+// @version      1.4
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -36,6 +36,7 @@ const haveListBody = "[H]\n";
 const wantListBody = "[W]\n";
 // ==Configuration==
 
+//Codes
 const langList = {
     "english":/\s(\d+) of \d+, Series \d+\s$/,
     "bulgarian": /\s(\d+) от \d+, серия \d+\s$/,
@@ -65,35 +66,33 @@ const langList = {
     "ukrainian":/\s(\d+) з \d+, серія №\d+\s$/
 };
 
-//Codes
-function getInfo(doc,CYSstorage) {
-    var ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;
-    var userLang = null;
-    var getUserLang = (function getUserLang() {
-        if (CYSstorage==="fetch") return "english";
-        else if (yourLanguage.length>0) return yourLanguage;
-        else {
-            let cookieLang = (document.cookie.match(/Steam_Language=(\w+)/)) ? document.cookie.match(/Steam_Language=(\w+)/)[1] : null;
-            return cookieLang;
-        }
-    })();
-    if (getUserLang!==null&&Object.keys(langList).indexOf(getUserLang)>-1) {
-        userLang = langList[getUserLang];
-        console.log((CYSstorage!=="fetch") ? `Your current language: ${getUserLang}` : "Fetching your data...");
+function getUserLang() {
+    let tempLang = null;
+    if (yourLanguage.length>0) tempLang = yourLanguage;
+    else {
+        tempLang = (document.cookie.match(/Steam_Language=(\w+)/)) ? document.cookie.match(/Steam_Language=(\w+)/)[1] : null;
+    }
+    if (tempLang!==null&&Object.keys(langList).indexOf(tempLang)>-1) {
+        console.log(`Your current language: ${tempLang}`);
     } else {
         alert("Couldn't detect you current language using cookies\n"+
               "Or your language setting in the script not right\n"+
               "Please set your Language in the script settings then try again");
-        return;
+        return false;
     }
+    return tempLang;
+}
+
+function getInfo(doc,lang) {
+    var ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;
     function clean(str,replacements) {
         replacements = (replacements) ? new Map([
             [/\s+/gm, " "],
-            [userLang, "=.=$1"],
+            [langList[lang], "=.=$1"],
             [/^\s\((\d+)\)\s/, "$1=.="]
         ]) : new Map([
             [/\s+/gm, " "],
-            [userLang, "=.=$1"],
+            [langList[lang], "=.=$1"],
             [/^\s/, "0=.="]
         ]);
         replacements.forEach(function(value, key) {
@@ -314,7 +313,7 @@ function getStorage(mode) {
     return {storageInv,storageItem,storageClear,storageSet};
 }
 
-function passiveFetch() {
+function passiveFetch(lang) {
     const checkURL1 = "https://steamcommunity.com/profiles/";
     const checkURL2 = "https://steamcommunity.com/id/";
     const appID = window.location.pathname.split("/")[2];
@@ -339,14 +338,14 @@ function passiveFetch() {
     }
     console.log("Your SteamID = "+steamID);
     var URL = (/^7656119[0-9]{10}$/.test(steamID)) ? checkURL1+steamID : checkURL2+steamID;
-    var resURL =
-        fetch(URL+"/gamecards/"+appID, {
-            method: "GET",
-            mode: "same-origin"}) .then(function(response) {
-            resURL = response.url;
-            return response.text();
-        })
-    .then(function(text) {
+    var resURL;
+    fetch(URL+"/gamecards/"+appID+`/?l=${lang}`, {
+        method: "GET",
+        mode: "same-origin"}) .then(function(response) {
+        resURL = response.url;
+        return response.text();
+    })
+        .then(function(text) {
         if (!text.match(document.getElementsByClassName("apphub_AppName")[0].textContent.trim()&&
                         !resURL.match("/gamecards/"+appID))) {
             alert("(CYS) Something went wrong, cannot fetch date, please try doing it manually");
@@ -354,20 +353,20 @@ function passiveFetch() {
         }
         const gameCardPage = document.createElement("div");
         gameCardPage.innerHTML = text;
-        readInfo(getInfo(gameCardPage,"fetch"),calcTrade,"fetch");
+        readInfo(getInfo(gameCardPage,lang),calcTrade,"fetch");
     })
-    .catch(function(error) {
+        .catch(function(error) {
         alert("(CYS) Something went wrong, cannot fetch date, please try doing it manually");
         console.log("Cannot fetch data, please try doing it manually", error);
     });
 }
 
-function fetchButton(subsBtn,tradeofBtn) {
+function fetchButton(subsBtn,tradeofBtn,lang) {
     if (subsBtn.length===0&&tradeofBtn.length===0) return;
     var btn = (subsBtn[0]||tradeofBtn[0]);
     const a = document.createElement("a");
     a.className = (subsBtn.length>0) ? "btn_grey_black btn_medium" : "btn_darkblue_white_innerfade btn_medium";
-    a.onclick = function(){passiveFetch();};
+    a.onclick = function(){passiveFetch(lang);};
     a.innerHTML = "<span>Fetch Info</span>";
     btn.appendChild(a);
 }
@@ -375,7 +374,7 @@ function fetchButton(subsBtn,tradeofBtn) {
 (function() {
     "use strict";
 
-    var useStorage = useLocalStorage, CYSstorage = {};
+    var useStorage = useLocalStorage, CYSstorage = {}, userLang;
     const numChecks = [
         !(Number.isInteger(fullSetTarget)&&fullSetTarget>=0),
         [1,2].indexOf(tradeTag)==-1,
@@ -401,6 +400,8 @@ function fetchButton(subsBtn,tradeofBtn) {
         console.warn("(CYS) GM functions are not defined - Switch to use HTML5 Local Storage instead");
     }
     CYSstorage = getStorage(useStorage);
+    userLang = getUserLang();
+    if (!userLang) return;
     if (/\/gamecards\//.test(window.location.pathname)) {
         if (document.getElementsByClassName("gamecards_inventorylink").length === 0) {
             console.log("Not your profile?");
@@ -408,11 +409,11 @@ function fetchButton(subsBtn,tradeofBtn) {
         } else if (CYSstorage.storageInv()) {
             CYSstorage.storageClear();
         }
-        readInfo(getInfo(document,CYSstorage),calcTrade,CYSstorage);
+        readInfo(getInfo(document,userLang),calcTrade,CYSstorage);
     }
     if (/\/tradingforum/.test(window.location.pathname)) {
         fetchButton(document.getElementsByClassName("forum_subscribe_button"),
-                    document.getElementsByClassName("forum_topic_tradeoffer_button_ctn"));
+                    document.getElementsByClassName("forum_topic_tradeoffer_button_ctn"),userLang);
         if (!CYSstorage.storageInv()) {
             console.log("(CYS) No Stored Trade Info In Storage");
             return;
