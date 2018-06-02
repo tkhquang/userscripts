@@ -2,7 +2,7 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.2
+// @version      1.3
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -26,6 +26,7 @@ const fullSetUnowned = true;//Check for sets that you're missing a whole full se
 const fullSetStacked = false;//false = Will check for the nearest number of your card set, even if you have enough cards to have 2, 3 more set
 const useLocalStorage = false;//Use HTML5 Local Storage instead, set this to true if you're using Greasemonkey
 const steamID64 = "";//Your steamID64, needed for fetch trade data directly from trade forum
+const yourLanguage = "";//Check the Langlist below, if you don't see your Language there, please contact me. Must be set to be the same with you steam language
 const customSteamID = "";//If you have set a custom ID for you Steam account, set this
 const customTitle = " [1:1]";
 const customBody = "\n[1:1] Trading";
@@ -35,19 +36,63 @@ const haveListBody = "[H]\n";
 const wantListBody = "[W]\n";
 // ==Configuration==
 
+const langList = {
+    "english":/\s(\d+) of \d+, Series \d+\s$/,
+    "bulgarian": /\s(\d+) от \d+, серия \d+\s$/,
+    "czech": /\s(\d+) z \d+, \d+. série\s$/,
+    "danish":/\s(\d+) af \d+, serie \d+\s$/,
+    "dutch":/\s(\d+) van de \d+, serie \d+\s$/,
+    "finnish":/\s(\d+) \/ \d+, Sarja \d+\s$/,
+    "french":/\s(\d+) sur \d+, séries \d+\s$/,
+    "german":/\s(\d+) von \d+, Serie \d+\s$/,
+    "greek":/\s(\d+) από \d+, Σειρά \d+\s$/,
+    "hungarian":/\s(\d+) \/ \d+, \d+\. sorozat\s$/,
+    "italian":/\s(\d+) di \d+, serie \d+\s$/,
+    "japanese":/\s\d+ 枚中 (\d+)枚, シリーズ \d+\s$/,
+    "koreana":/\s\d+장 중 (\d+)번째, 시리즈 \d+\s$/,
+    "norwegian":/\s(\d+) av \d+, serie \d+\s$/,
+    "polish":/\s(\d+) z \d+, seria \d+\s$/,
+    "portuguese":/\s(\d+) de \d+, \d+\ª Série\s$/,
+    "brazilian":/\s(\d+) de \d+, série \d+\s$/,
+    "romanian":/\s(\d+) din \d+, seria \d+\s$/,
+    "russian":/\s(\d+) из \d+, серия \d+\s$/,
+    "schinese":/\s\d+ 张中的第 (\d+) 张，系列 \d+\s$/,
+    "spanish":/\s(\d+) de \d+, serie \d+\s$/,
+    "swedish":/\s(\d+) av \d+, serie \d+\s$/,
+    "tchinese":/\s(\d+) \/ \d+，第 \d+ 套\s$/,
+    "thai":/\s(\d+) จาก \d+ ในชุดที่ \d+\s$/,
+    "turkish":/\s(\d+)\/\d+, Seri \d+\s$/,
+    "ukrainian":/\s(\d+) з \d+, серія №\d+\s$/
+};
+
 //Codes
-
-function getInfo(doc) {
-    var ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;
-
+function getInfo(doc,CYSstorage) {
+    var ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;    
+    var userLang = null;
+    var getUserLang = (function getUserLang() {
+        if (yourLanguage.length>0) return langList[yourLanguage];
+        else if (CYSstorage==="fetch") return langList.english;
+        else {
+            let tempLang = null;
+            var cookieLang = (document.cookie.match(/Steam_Language=(\w+)/)) ? document.cookie.match(/Steam_Language=(\w+)/)[1] : null;
+            tempLang = (Object.keys(langList).indexOf(cookieLang)>-1) ? langList[cookieLang] : null;
+            return tempLang;
+        }
+    })();
+    if (!getUserLang) {
+        alert("Couldn't detect you current language using cookies\n"+
+              "Or your language setting in the script not right\n"+
+              "Please set your Language in the script settings then try again");
+        return;
+    } else userLang = getUserLang;
     function clean(str,replacements) {
         replacements = (replacements) ? new Map([
-            [/\s{2,}/g, " "],
-            [/\s(\d+)\ of \d+\, Series \d+\s$/, "=.=$1"],
+            [/\s+/gm, " "],
+            [userLang, "=.=$1"],
             [/^\s\((\d+)\)\s/, "$1=.="]
         ]) : new Map([
-            [/\s{2,}/g, " "],
-            [/\s(\d+)\ of \d+\, Series \d+\s$/, "=.=$1"],
+            [/\s+/gm, " "],
+            [userLang, "=.=$1"],
             [/^\s/, "0=.="]
         ]);
         replacements.forEach(function(value, key) {
@@ -301,14 +346,14 @@ function passiveFetch() {
             return response.text();
         })
     .then(function(text) {
-        if (!text.match(document.getElementsByClassName("apphub_AppName")[0].textContent&&
+        if (!text.match(document.getElementsByClassName("apphub_AppName")[0].textContent.trim()&&
                         !resURL.match("/gamecards/"+appID))) {
             alert("(CYS) Something went wrong, cannot fetch date, please try doing it manually");
             return;
         }
         const gameCardPage = document.createElement("div");
         gameCardPage.innerHTML = text;
-        readInfo(getInfo(gameCardPage),calcTrade,"fetch");
+        readInfo(getInfo(gameCardPage,"fetch"),calcTrade,"fetch");
     })
     .catch(function(error) {
         alert("(CYS) Something went wrong, cannot fetch date, please try doing it manually");
@@ -362,7 +407,7 @@ function fetchButton(subsBtn,tradeofBtn) {
         } else if (CYSstorage.storageInv()) {
             CYSstorage.storageClear();
         }
-        readInfo(getInfo(document),calcTrade,CYSstorage);
+        readInfo(getInfo(document,CYSstorage),calcTrade,CYSstorage);
     }
     if (/\/tradingforum/.test(window.location.pathname)) {
         fetchButton(document.getElementsByClassName("forum_subscribe_button"),
