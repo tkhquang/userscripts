@@ -339,7 +339,7 @@ function passiveFetch(lang) {
     console.log("Your SteamID = "+steamID);
     var URL = (/^7656119[0-9]{10}$/.test(steamID)) ? checkURL1+steamID : checkURL2+steamID;
     var resURL;
-    fetch(URL+"/gamecards/"+appID+`/?l=${lang}`, {
+    fetch(`${URL}/gamecards/${appID}/?l=${lang}`, {
         method: "GET",
         mode: "same-origin"}) .then(function(response) {
         resURL = response.url;
