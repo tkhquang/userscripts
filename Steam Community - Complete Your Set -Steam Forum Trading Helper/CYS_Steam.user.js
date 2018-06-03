@@ -26,10 +26,10 @@ const fullSetUnowned = true;//Check for sets that you're missing a whole full se
 const fullSetStacked = false;//false = Will check for the nearest number of your card set, even if you have enough cards to have 2, 3 more set
 const useLocalStorage = false;//Use HTML5 Local Storage instead, set this to true if you're using Greasemonkey
 const useForcedFetch = false;//Use this if your Language is unsupported by the script by now, this is a workaround
-const useForcedFetchBackup = true;//If no language is detected, it switches to Forced Fetch Mode automatically so that it won't throw an error.
+const useForcedFetchBackup = true;//If no language is detected, it switches to Forced Fetch Mode automatically so that it won't throw an error
 const steamID64 = "";//Your steamID64, needed for fetch trade data directly from trade forum
-const yourLanguage = "";//If things are alright, don't touch this. Check the Langlist below, if you don't see your Language there, please contact me.
 const customSteamID = "";//If you have set a custom ID for you Steam account, set this
+const yourLanguage = "";//Set this if the script have problem detecting your language, see the Langlist below
 const customTitle = " [1:1]";
 const customBody = "\n[1:1] Trading";
 const haveListTitle = "[H] ";
@@ -38,7 +38,8 @@ const haveListBody = "[H]\n";
 const wantListBody = "[W]\n";
 // ==Configuration==
 
-//Codes
+// ==Codes==
+//List of languages, if you don't see your Language below, please contact me.
 const langList = {
     "english"      :    /\s(\d+)\ of \d+\, Series \d+\s$/,
     "bulgarian"    :    /\s(\d+)\ от \d+\, серия \d+\s$/,
@@ -334,11 +335,9 @@ function passiveFetch(lang,appID,CYSstorage) {
         return response.text();
     })
         .then(function(text) {
-        const appName = document.getElementsByClassName("apphub_AppName");
-        if (appName.length > 0 && !text.match(appName[0].textContent.trim()) &&
-            !resURL.match(`/gamecards/${appID}`) && resURL.match("/?goto=")) {
-            alert("(CYS) Something went wrong, cannot fetch data, please try doing it manually");
-            return;
+        if (!resURL.match(`/gamecards/${appID}`) && resURL.match("/?goto=")) {
+            alert("(CYS) Something might not be right\nPlease try again or doing it manually "+
+                  "if your trade data is not right");
         }
         const gameCardPage = document.createElement("div");
         gameCardPage.innerHTML = text;
