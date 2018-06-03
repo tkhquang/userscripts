@@ -4,6 +4,7 @@
 // @version      1.1
 // @description  Show channel's name (username) in title page
 // @author       Aleks
+// @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
 // @homepage     https://greasyfork.org/en/scripts/368421-youtube-show-channel-name-in-title
 // @match        http*://www.youtube.com/*
 // @run-at       document-start
