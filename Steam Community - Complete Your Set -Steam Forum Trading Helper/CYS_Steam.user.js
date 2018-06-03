@@ -25,7 +25,7 @@ const fullSetTarget = 0;//0 = Don't set a target number of Card Sets//Integer > 
 const fullSetUnowned = true;//Check for sets that you're missing a whole full set? This has no effect if fullSetMode = 1
 const fullSetStacked = false;//false = Will check for the nearest number of your card set, even if you have enough cards to have 2, 3 more set
 const useLocalStorage = false;//Use HTML5 Local Storage instead, set this to true if you're using Greasemonkey
-const useForcedFetch = false;//Use this if your Language is unsupport by the script by now, this is a workaround
+const useForcedFetch = false;//Use this if your Language is unsupported by the script by now, this is a workaround
 const useForcedFetchBackup = true;//If no language is detected, it switches to Forced Fetch Mode automatically so that it won't throw an error.
 const steamID64 = "";//Your steamID64, needed for fetch trade data directly from trade forum
 const yourLanguage = "";//If things are alright, don't touch this. Check the Langlist below, if you don't see your Language there, please contact me.
