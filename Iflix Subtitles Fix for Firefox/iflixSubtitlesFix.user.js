@@ -72,7 +72,7 @@ function getVidState(vidPlayer,timer) {
     return;
 }
 
-function getSubList(vidPlayer) {//document.getElementsByClassName("vimond-player-video")[0].textTracks;
+function getSubList(vidPlayer) {
     const subList = vidPlayer[0].textTracks;
     if (subList.length === 0) {
         console.warn("iSFix - No subtitles?");
