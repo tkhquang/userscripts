@@ -4,6 +4,7 @@
 // @version      2.0
 // @description  Subtitles fix for Firefox
 // @author       Aleks
+// @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
 // @homepage     https://greasyfork.org/en/scripts/367324-iflix-subtitles-fix-for-firefox
 // @match        http*://piay.iflix.com/*
 // @run-at       document-start
