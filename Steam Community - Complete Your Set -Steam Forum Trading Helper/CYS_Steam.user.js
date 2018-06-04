@@ -2,7 +2,7 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.5
+// @version      1.51
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -64,7 +64,7 @@ const langList = {
     "spanish"      :    /\s(\d+)\sde\s\d+,\sserie\s\d+\s$/,
     "swedish"      :    /\s(\d+)\sav\s\d+,\sserie\s\d+\s$/,
     "tchinese"     :    /\s(\d+)\s\/\s\d+，第\s\d+\s套\s$/,
-    "thai"         :    /\s(\d+)\sจาก\s\d+\\sในชุดที่\s\d+\s$/,
+    "thai"         :    /\s(\d+)\sจาก\s\d+\sในชุดที่\s\d+\s$/,
     "turkish"      :    /\s(\d+)\/\d+,\sSeri\s\d+\s$/,
     "ukrainian"    :    /\s(\d+)\sз\s\d+,\sсерія\s№\d+\s$/
 };
@@ -73,7 +73,8 @@ const langList = {
     "use strict";
 
     function getInfo(doc,lang) {
-        let ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;
+        let ularrCards = [], arrCards = [], objCards = {}, total = 0,
+            set, qtyDiff = false, cardCheck = true, lowestQty = Infinity;
         function clean(str,replacements) {
             replacements = (replacements) ? new Map([
                 [/\s+/gm, " "],
@@ -124,8 +125,15 @@ const langList = {
         set = (arrCards.length > 0) ? arrCards.length : 0;
         arrCards.forEach(function(card) {
             let curQty = Number(card[0]);
-            if (arrCards[0][0] !== card[0]) {qtyDiff = true;}
-            if (curQty<lowestQty) {lowestQty = curQty;}
+            if (arrCards[0][0] !== card[0]) {
+                qtyDiff = true;
+            }
+            if (curQty < lowestQty) {
+                lowestQty = curQty;
+            }
+            if (!(/\d+/).test(card[0]) || !(/\d+/).test(card[2])) {
+                cardCheck = false;
+            }
             total += curQty;
             objCards[`card${card[2]}`] = {
                 "order":Number(card[2]),
@@ -134,7 +142,9 @@ const langList = {
             };
         });
         //console.log(objCards);
-        return {objCards,total,set,qtyDiff,lowestQty};
+        return {
+            objCards,total,set,qtyDiff,lowestQty,cardCheck
+        };
     }
 
     function calcTrade(info,numSet,tradeNeed,CYSstorage) {
@@ -195,6 +205,11 @@ ${wantListText}`,
 
     function readInfo(cardInfo,calcTrade,CYSstorage) {
         const info = cardInfo;
+        //console.log(info);
+        if (!info.cardCheck) {
+            alert("(CYS) Something is wrong, please try setting your Language in the script settings manually\n"+
+                  "Or try enabling useForcedFetch");
+        }
         const setDiff = info.total/info.set;
         let numSet, tradeNeed = false;
         function remainCards(a) {
@@ -305,7 +320,9 @@ ${wantListText}`,
                 console.log("(CYS) Done storing trade info in Local Storage");
             };
         }
-        return {storageInv, storageItem, storageClear, storageSet};
+        return {
+            storageInv, storageItem, storageClear, storageSet
+        };
     }
 
     function passiveFetch(lang,appID,CYSstorage) {
@@ -421,9 +438,9 @@ ${wantListText}`,
             typeof(useForcedFetch) !== "boolean",
             typeof(useForcedFetchBackup) !== "boolean"
         ], GMChecks = [
-            typeof GM_setValue!=="undefined",
-            typeof GM_getValue!=="undefined",
-            typeof GM_deleteValue!=="undefined"
+            typeof GM_setValue !== "undefined",
+            typeof GM_getValue !== "undefined",
+            typeof GM_deleteValue !== "undefined"
         ];
 
         if (configCheck(numChecks,true)) {
