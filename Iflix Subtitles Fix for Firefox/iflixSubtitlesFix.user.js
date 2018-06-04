@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Iflix Subtitles Fix for Firefox
 // @namespace    https://github.com/tkhquang
-// @version      2.1
+// @version      2.2
 // @description  Subtitles fix for Firefox
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -66,8 +66,7 @@ function alterSub(activeSub) {
 
     let activeCues = activeSub.cues;
     function lineCheck() {
-        return Boolean(activeCues !== null &&activeCues[0] !== undefined &&
-                       activeCues[0].line === lineVTT);
+        return Boolean(activeCues !== null &&activeCues[0] !== undefined && activeCues[0].line === lineVTT);
     }
     if (activeCues !==null && activeCues[0].line !== lineVTT) {
         Object.keys(activeCues).forEach(function (i) {
@@ -134,7 +133,9 @@ function getVidState(vidPlayer, timer) {
 
     document.arrive(".vimond-player-video", function() {
         console.log("iSFix - Video element available");
-        setTimeout(getVidState(document.getElementsByClassName("vimond-player-video"),true), 1000);
+        setTimeout(function () {
+            getVidState(document.getElementsByClassName("vimond-player-video"),true);
+        }, 1000);
     });
     document.leave(".vimond-player-video", function() {
         console.log("iSFix - Video element unavailable");
