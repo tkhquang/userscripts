@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Iflix Subtitles Fix for Firefox
 // @namespace    https://github.com/tkhquang
-// @version      2.0
+// @version      2.1
 // @description  Subtitles fix for Firefox
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -36,10 +36,14 @@ const lineHeight = "150%"; //Better leave this as is - "normal" with lineVTT = 1
 
 //Codes
 function styleSub() {
-    if (/^\/play/.test(window.location.pathname) === false) return;
-    const css = `video::cue {\
-font-size: calc(${minfontSize} + ${fontSize}) !important;\
-line-height: ${lineHeight} !important;\
+    "use strict";
+
+    if (!(/^\/play/).test(window.location.pathname)) {
+        return;
+    }
+    const css = `video::cue {
+font-size: calc(${minfontSize} + ${fontSize}) !important;
+line-height: ${lineHeight} !important;
 }`;
     if (typeof GM_addStyle !== "undefined") {
         GM_addStyle(css);
@@ -57,70 +61,77 @@ line-height: ${lineHeight} !important;\
     console.log("iSFix - Styling Done!");
 }
 
-function getVidState(vidPlayer,timer) {
-    if (timer === true && vidPlayer.length === 0) {
-        console.warn("iSFix - No video? Try getting it after 5s...");
-        timer = setTimeout(function () {
-            getVidState(vidPlayer,true);
+function alterSub(activeSub) {
+    "use strict";
+
+    let activeCues = activeSub.cues;
+    function lineCheck() {
+        return Boolean(activeCues !== null &&activeCues[0] !== undefined &&
+                       activeCues[0].line === lineVTT);
+    }
+    if (activeCues !==null && activeCues[0].line !== lineVTT) {
+        Object.keys(activeCues).forEach(function (i) {
+            activeCues[i].line = lineVTT;
+        });
+        console.log("iSFix - Done setting lines!");
+    }
+    if (!lineCheck()) {
+        console.log("iSFix - Current line value: " + activeCues[0].line);
+        console.warn("iSFix - Unmodified lines => Try changing line value...");
+        setTimeout(function () {
+            alterSub(activeSub);
         }, 5000);
+        return;
     }
-    else if (!timer) clearTimeout(timer);
-    else {
-        clearTimeout(timer);
-        styleSub();
-        getSubList(vidPlayer);
-    }
-    return;
+    console.log("iSFix - Current line value: " + activeCues[0].line);
+    console.log("iSFix - Passed!!!");
 }
 
 function getSubList(vidPlayer) {
+    "use strict";
+
     const subList = vidPlayer[0].textTracks;
-    if (subList.length === 0) {
-        console.warn("iSFix - No subtitles?");
-        return;
-    }
-    function getSub(subList) {
+    function getSub() {
         return (function () {
-            for (let i = 0; i < subList.length; i+=1) {
-                if (subList[i].mode === "showing") {
-                    return subList[i];
+            for (let sub of subList) {
+                if (sub.mode === "showing") {
+                    return sub;
                 }
             }
             return false;
-        })();
+        }());
     }
     subList.onchange = function() {
         console.log("iSFix - Subtitles onchange action");
-        alterSub(getSub(subList));
-    };
-    alterSub(getSub(subList));
-    setTimeout(alterSub(getSub(subList)), 10000);
-}
-
-function alterSub(activeSub) {
-    if (!activeSub) return;
-    let curLineValue = activeSub.cues[0].line;
-    if (curLineValue !== lineVTT) {
-        for (let i = 0; i < activeSub.cues.length; i+=1) {
-            activeSub.cues[i].line = lineVTT;
+        if (getSub()) {
+            alterSub(getSub());
         }
-        console.log("iSFix - Done setting lines!");
-    }
-    setTimeout(lineCheck(activeSub), 5000);
+    };
+    setTimeout(function() {
+        if (getSub()) {
+            alterSub(getSub());
+        }
+    }, 10000);
 }
 
-function lineCheck(activeSub) {
-    let curLineValue = activeSub.cues[0].line;
-    console.log("iSFix - Current line value: " + curLineValue);
-    if (curLineValue !== lineVTT) {
-        console.warn("iSFix - Unmodified lines => Try changing line value...");
-        alterSub(activeSub);
+function getVidState(vidPlayer, timer) {
+    "use strict";
+
+    if ((timer === true && vidPlayer.length === 0) || vidPlayer[0] === undefined) {
+        console.warn("iSFix - No video? Try getting it after 5s...");
+        timer = setTimeout(function () {
+            getVidState(vidPlayer, true);
+        }, 5000);
+        return;
     }
-    console.log("iSFix - Passed!!!");
+    clearTimeout(timer);
+    styleSub();
+    getSubList(vidPlayer);
 }
 
 (function() {
     "use strict";
+
     document.arrive(".vimond-player-video", function() {
         console.log("iSFix - Video element available");
         setTimeout(getVidState(document.getElementsByClassName("vimond-player-video"),true), 1000);
@@ -129,4 +140,4 @@ function lineCheck(activeSub) {
         console.log("iSFix - Video element unavailable");
         getVidState(document.getElementsByClassName("vimond-player-video"),false);
     });
-})();
+}());
