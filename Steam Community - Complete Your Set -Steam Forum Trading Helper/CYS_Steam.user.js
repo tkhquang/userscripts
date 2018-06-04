@@ -2,7 +2,7 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.51
+// @version      1.52
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -108,8 +108,9 @@ const langList = {
             //console.log(unowned);
             return unowned;
         }
-        function sortArr(arr,index) {
-            let sort = Object.keys(new Int8Array(arr.length)).map(Number).slice(1);
+        function sortArr(arr, index) {
+            let sort = Object.keys(new Int8Array(arr.length + 1)).map(Number).slice(1);
+            //console.log(sort);
             arr = arr.map(function(item) {
                 let n = sort.indexOf(Number(item[index]));
                 sort[n] = "";
@@ -143,11 +144,11 @@ const langList = {
         });
         //console.log(objCards);
         return {
-            objCards,total,set,qtyDiff,lowestQty,cardCheck
+            objCards, total, set, qtyDiff, lowestQty, cardCheck
         };
     }
 
-    function calcTrade(info,numSet,tradeNeed,CYSstorage) {
+    function calcTrade(info, numSet, tradeNeed, CYSstorage) {
         if (!tradeNeed) {
             return;
         }
@@ -160,34 +161,42 @@ const langList = {
             let tag = (tradeTag === 2) ? v.name : v.order;
             if (v.quantity > numSet && tradeMode !== 2) {
                 haveListTextTitle += (showQtyInTitle) ? `${tag} (x${(v.quantity-numSet)}), ` : `${tag}, `;
-                haveListText += `Card ${v.order} - ${v.name} - (x${(v.quantity-numSet)})
-`;
+                haveListText += `Card ${v.order} - ${v.name} - (x${(v.quantity-numSet)})`+
+                    "\n";
             }
             if ((v.quantity < numSet || (fullSetMode === 0 && v.quantity === numSet)) && tradeMode !== 1) {
                 wantListTextTitle += (showQtyInTitle) ? `${tag} (x${(numSet-v.quantity)}), ` : `${tag}, `;
-                wantListText += `Card ${v.order} - ${v.name} - (x${(numSet-v.quantity)})
-`;
+                wantListText += `Card ${v.order} - ${v.name} - (x${(numSet-v.quantity)})`+
+                    "\n";
             }
         });
         haveListTextTitle = haveListTextTitle.replace(/(?:,|,\s+)$/, " ");
         wantListTextTitle = wantListTextTitle.replace(/(?:,|,\s+)$/, "");
         //console.log(haveListTextTitle);console.log(wantListTextTitle);console.log(haveListText);console.log(wantListText);
         if (CYSstorage === "fetch") {
-            (function(reply,topic,btn) {
-                if (btn.length > 0) {btn[0].click();}
+            (function(reply, topic, btn) {
+                if (btn.length > 0) {
+                    btn[0].click();
+                }
                 reply[0].value = "";
-                if (topic.length > 0) {topic[0].value = "";}
-                reply[0].value = `${haveListText}
-${wantListText}${customBody}`;
-                if (topic.length > 0) {topic[0].value = `${haveListTextTitle}${wantListTextTitle}${customTitle}`;}
+                if (topic.length > 0) {
+                    topic[0].value = "";
+                }
+                reply[0].value = `${haveListText}`+
+                    "\n"+
+                    `${wantListText}${customBody}`;
+                if (topic.length > 0) {
+                    topic[0].value = `${haveListTextTitle}${wantListTextTitle}${customTitle}`;
+                }
             }(document.getElementsByClassName("forumtopic_reply_textarea"),
               document.getElementsByClassName("forum_topic_input"),
               document.getElementsByClassName("responsive_OnClickDismissMenu")));
             return;
         }
         CYStext = JSON.stringify([
-            `${haveListText}
-${wantListText}`,
+            `${haveListText}`+
+            "\n"+
+            `${wantListText}`,
             `${haveListTextTitle}${wantListTextTitle}`,
             window.location.pathname.split("/")[4],
             Date.now()
@@ -203,23 +212,25 @@ ${wantListText}`,
         }());
     }
 
-    function readInfo(cardInfo,calcTrade,CYSstorage) {
+    function readInfo(cardInfo, calcTrade, CYSstorage) {
         const info = cardInfo;
         //console.log(info);
         if (!info.cardCheck) {
             alert("(CYS) Something is wrong, please try setting your Language in the script settings manually\n"+
                   "Or try enabling useForcedFetch");
         }
-        const setDiff = info.total/info.set;
+        const setDiff = info.total / info.set;
         let numSet, tradeNeed = false;
         function remainCards(a) {
-            return (Math.abs(info.total-(info.set*a)));
+            return (Math.abs(info.total - (info.set * a)));
         }
         if (fullSetTarget !== 0) {
             numSet = fullSetTarget;
-            tradeNeed = Boolean(Math.floor(setDiff)<numSet||(Math.floor(setDiff)===numSet&&info.qtyDiff));
+            tradeNeed = Boolean(Math.floor(setDiff) < numSet || (Math.floor(setDiff) === numSet && info.qtyDiff));
             console.log(`Target Set :${fullSetTarget}`);
-            if (!tradeNeed) {console.warn("(CYS) Script stopped since you've reached this target already");}
+            if (!tradeNeed) {
+                console.warn("(CYS) Script stopped since you've reached this target already");
+            }
         } else {
             let remainSet;
             switch(fullSetMode) {
@@ -228,54 +239,50 @@ ${wantListText}`,
                     tradeNeed = true;
                     break;
                 case 1:
-                    if (Math.floor(setDiff)===0) {
+                    if (Math.floor(setDiff) === 0) {
                         console.log("You don't have enough cards for a full set");
-                        break;
-                    } else if (Number.isInteger(setDiff)&&info.qtyDiff) {
+                    } else if (Number.isInteger(setDiff) && info.qtyDiff) {
                         numSet = Math.floor(setDiff);
                         tradeNeed = true;
                         console.log(`Your cards are enough to get a full set - ${numSet} set(s) in Total`);
-                        break;
-                    } else if (info.qtyDiff&&Math.floor(setDiff)>1) {
+                    } else if (info.qtyDiff && Math.floor(setDiff) > 1) {
                         numSet = (fullSetStacked) ? Math.floor(setDiff) : info.lowestQty + 1;
                         tradeNeed = true;
                         console.log(`Your cards are enough to get a full set - ${numSet} set(s) in Total`);
-                        break;
                     } else {
                         console.log("You don't have enough cards for a full set");
-                        break;
                     }
                     break;
                 case 2:
-                    remainSet = Boolean(!Number.isInteger(setDiff)||(Number.isInteger(setDiff)&&info.qtyDiff));
+                    remainSet = Boolean(!Number.isInteger(setDiff) || (Number.isInteger(setDiff) && info.qtyDiff));
                     if (remainSet) {
-                        numSet = (fullSetStacked) ? Math.floor(setDiff + 1) : info.lowestQty+1;
+                        numSet = (fullSetStacked) ? Math.floor(setDiff + 1) : info.lowestQty + 1;
                         tradeNeed = true;
                         console.log((Number.isInteger(setDiff)) ? "Your cards are enough to get a full set"
                                     : `You need ${remainCards(numSet)} more card(s) to get some full set(s)`);
-                        break;
                     } else {
                         if (fullSetUnowned) {
                             numSet = Math.floor(setDiff + 1);
                             tradeNeed = true;
-                            if (remainCards(numSet)!==info.set&&info.qtyDiff) {
+                            if (remainCards(numSet) !== info.set && info.qtyDiff) {
                                 console.log(`You need ${remainCards(numSet)} more card(s) to get some full set(s)`);
                             } else {console.log((info.qtyDiff) ? "Your cards are enough to get a full set" : "You need a whole full set");}
-                            break;
                         } else {
-                            numSet = Math.floor(setDiff);console.log(numSet);
+                            numSet = Math.floor(setDiff);
                             console.warn("(CYS) You need a whole full set - "+
                                          "Script stopped according to your configurations (fullSetUnowned = false)");
-                            break;
                         }
                     }
+                    break;
             }
         }
         calcTrade(info, numSet, tradeNeed, CYSstorage);
     }
 
-    function inTrade(CYSstorage,disBtn) {
-        if (disBtn.length === 0) {return;}
+    function inTrade(CYSstorage, disBtn) {
+        if (disBtn.length === 0) {
+            return;
+        }
         disBtn[0].click();
         document.getElementsByClassName("forumtopic_reply_textarea")[0].value = CYSstorage.storageItem(0) + customBody;
         document.getElementsByClassName("forum_topic_input")[0].value = CYSstorage.storageItem(1) + customTitle;
@@ -288,8 +295,7 @@ ${wantListText}`,
         let storageItem, storageInv, storageClear, storageSet;
         if (!mode) {
             storageInv = function() {
-                return Boolean(typeof GM_getValue("CYS-STORAGE") !== "undefined" &&
-                               GM_getValue("CYS-STORAGE").length > 0);
+                return Boolean(typeof GM_getValue("CYS-STORAGE") !== "undefined" && GM_getValue("CYS-STORAGE").length > 0);
             };
             storageItem = function(index) {
                 return JSON.parse(GM_getValue("CYS-STORAGE"))[index];
@@ -305,8 +311,7 @@ ${wantListText}`,
         }
         if (mode) {
             storageInv = function() {
-                return Boolean(window.localStorage.cardTrade !== undefined &&
-                               window.localStorage.cardTrade.length > 0);
+                return Boolean(window.localStorage.cardTrade !== undefined && window.localStorage.cardTrade.length > 0);
             };
             storageItem = function(index) {
                 return JSON.parse(localStorage.cardTrade)[index];
@@ -325,20 +330,26 @@ ${wantListText}`,
         };
     }
 
-    function passiveFetch(lang,appID,CYSstorage) {
+    function passiveFetch(lang, appID, CYSstorage) {
         const checkURL1 = "https://steamcommunity.com/profiles/";
         const checkURL2 = "https://steamcommunity.com/id/";
         const steamID = (function () {
             const pattn = [/steamRememberLogin=(\d{17})/,/\/steamcommunity.com\/(?:id|profiles)\/([\w-_]+)\//];
             let tempID = null,
                 userAva = document.getElementsByClassName("user_avatar");
-            if (/^\d{17}$/.test(steamID64)) {tempID = steamID64;}
-            else if (/^[\w-_]+$/.test(customSteamID)) {tempID = customSteamID;}
+            if (/^\d{17}$/.test(steamID64)) {
+                tempID = steamID64;
+            }
+            else if (/^[\w-_]+$/.test(customSteamID)) {
+                tempID = customSteamID;
+            }
             else if (document.cookie.match(pattn[0])) {
                 tempID = document.cookie.match(pattn[0])[1];
             }
             else if (userAva.length > 0) {
-                if (userAva[0].href.match(pattn[1])) {tempID = userAva[0].href.match(pattn[1])[1];}
+                if (userAva[0].href.match(pattn[1])) {
+                    tempID = userAva[0].href.match(pattn[1])[1];
+                }
             }
             return tempID;
         }());
@@ -364,7 +375,7 @@ ${wantListText}`,
             }
             const gameCardPage = document.createElement("div");
             gameCardPage.innerHTML = text;
-            readInfo(getInfo(gameCardPage,lang),calcTrade,CYSstorage);
+            readInfo(getInfo(gameCardPage, lang), calcTrade, CYSstorage);
         })
             .catch(function(error) {
             alert("(CYS) Something went wrong, cannot fetch data, please try doing it manually");
@@ -372,13 +383,15 @@ ${wantListText}`,
         });
     }
 
-    function fetchButton(subsBtn,tradeofBtn,lang,appID,CYSstorage) {
-        if (subsBtn.length === 0 && tradeofBtn.length === 0) {return;}
+    function fetchButton(subsBtn, tradeofBtn, lang, appID, CYSstorage) {
+        if (subsBtn.length === 0 && tradeofBtn.length === 0) {
+            return;
+        }
         const btn = (subsBtn[0] || tradeofBtn[0]);
         const a = document.createElement("a");
         a.className = (subsBtn.length>0) ? "btn_grey_black btn_medium" : "btn_darkblue_white_innerfade btn_medium";
         a.onclick = function() {
-            passiveFetch(lang,appID,CYSstorage);
+            passiveFetch(lang, appID, CYSstorage);
         };
         a.innerHTML = "<span>Fetch Info</span>";
         btn.appendChild(a);
@@ -404,7 +417,9 @@ ${wantListText}`,
         } else {
             tempLang = null;
         }
-        if (useForcedFetch) {tempLang = "fetch";}
+        if (useForcedFetch) {
+            tempLang = "fetch";
+        }
         if (!tempLang) {
             if (!useForcedFetchBackup) {
                 alert("(CYS) Forced Fetch disable\n"+msgLang);
@@ -416,14 +431,13 @@ ${wantListText}`,
         return tempLang;
     }
 
-    function configCheck(condi,value) {
+    function configCheck(condi, value) {
         return condi.some(function(config) {
             return config === value;
         });
     }
 
     function initialize() {
-
         let useStorage = useLocalStorage, CYSstorage = {}, userLang;
 
         const numChecks = [
@@ -443,11 +457,11 @@ ${wantListText}`,
             typeof GM_deleteValue !== "undefined"
         ];
 
-        if (configCheck(numChecks,true)) {
+        if (configCheck(numChecks, true)) {
             alert("(CYS) Invalid Config Settings\nPlease Check Again!");
             return;
         }
-        if (!useStorage && configCheck(GMChecks,false)) {
+        if (!useStorage && configCheck(GMChecks, false)) {
             useStorage = true;
             console.warn("(CYS) GM functions are not defined - Switch to use HTML5 Local Storage instead");
         }
@@ -455,7 +469,9 @@ ${wantListText}`,
 
         if (/\/gamecards\//.test(window.location.pathname)) {
             userLang = getUserLang(document.getElementsByClassName("gamecards_inventorylink"));
-            if (!userLang) {return;}
+            if (!userLang) {
+                return;
+            }
             if (CYSstorage.storageInv()) {
                 CYSstorage.storageClear();
             }
@@ -465,11 +481,13 @@ ${wantListText}`,
                 console.log(`Your current language: ${userLang}`);
                 passiveFetch(userLang, window.location.pathname.split("/")[4], CYSstorage);
             }
-            else {readInfo(getInfo(document,userLang),calcTrade,CYSstorage);}
+            else {readInfo(getInfo(document, userLang), calcTrade, CYSstorage);}
         }
         if (/\/tradingforum/.test(window.location.pathname)) {
             userLang = getUserLang(document.getElementsByClassName("user_avatar"));
-            if (!userLang) {return;}
+            if (!userLang) {
+                return;
+            }
             if (userLang === "fetch") {
                 userLang = "english";
                 console.log("(CYS) Forced Fetch Mode is ON");
@@ -477,7 +495,7 @@ ${wantListText}`,
             }
             fetchButton(document.getElementsByClassName("forum_subscribe_button"),
                         document.getElementsByClassName("forum_topic_tradeoffer_button_ctn"),
-                        userLang,window.location.pathname.split("/")[2],"fetch");
+                        userLang, window.location.pathname.split("/")[2],"fetch");
             if (!CYSstorage.storageInv()) {
                 console.log("(CYS) No Stored Trade Info In Storage");
                 return;
@@ -494,7 +512,9 @@ ${wantListText}`,
                         return;
                     }
                 }
-                setTimeout(inTrade(CYSstorage,document.getElementsByClassName("responsive_OnClickDismissMenu")), 1000);
+                setTimeout(function() {
+                    inTrade(CYSstorage, document.getElementsByClassName("responsive_OnClickDismissMenu"));
+                }, 1000);
             }
         }
     }
