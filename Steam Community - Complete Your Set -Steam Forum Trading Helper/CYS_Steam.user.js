@@ -16,64 +16,63 @@
 // @grant        GM_deleteValue
 // ==/UserScript==
 
+// ==Configuration==
+const tradeTag = 2;//1 = #Number of Set in Title//2 = Card Name in Title
+const tradeMode = 0;//0 = List both Owned and Unonwed Cards//1 = Only List Owned Cards, 2 = Only List Unowned Cards
+const showQtyInTitle = false;//Show quantity in title?
+const fullSetMode = 2;//0 = Cards Lister Mode//1 = Only check for game set that you have enough cards to make it full//2 = Complete your remainng set
+const fullSetTarget = 0;//0 = Don't set a target number of Card Sets//Integer > 0 = Set a target number for Card Sets
+const fullSetUnowned = true;//Check for sets that you're missing a whole full set? This has no effect if fullSetMode = 1
+const fullSetStacked = false;//false = Will check for the nearest number of your card set, even if you have enough cards to have 2, 3 more set
+const useLocalStorage = false;//Use HTML5 Local Storage instead, set this to true if you're using Greasemonkey
+const useForcedFetch = false;//Use this if your Language is unsupported by the script by now, this is a workaround
+const useForcedFetchBackup = true;//If no language is detected, it switches to Forced Fetch Mode automatically so that it won't throw an error
+const steamID64 = "";//Your steamID64, needed for fetch trade data directly from trade forum
+const customSteamID = "";//If you have set a custom ID for you Steam account, set this
+const yourLanguage = "";//Set this if the script have problem detecting your language, see the Langlist below
+const customTitle = " [1:1]";
+const customBody = "\n[1:1] Trading";
+const haveListTitle = "[H] ";
+const wantListTitle = "[W] ";
+const haveListBody = "[H]\n";
+const wantListBody = "[W]\n";
+// ==Configuration==
+
+// ==Codes==
+//List of languages, if you don't see your Language below, please contact me.
+const langList = {
+    "english"      :    /\s(\d+)\sof\s\d+,\sSeries\s\d+\s$/,
+    "bulgarian"    :    /\s(\d+)\sот\s\d+,\sсерия\s\d+\s$/,
+    "czech"        :    /\s(\d+)\sz\s\d+,\s\d+\.\ssérie\s$/,
+    "danish"       :    /\s(\d+)\saf\s\d+,\sserie\s\d+\s$/,
+    "dutch"        :    /\s(\d+)\svan\sde\s\d+,\sserie\s\d+\s$/,
+    "finnish"      :    /\s(\d+)\s\/\s\d+,\sSarja\s\d+\s$/,
+    "french"       :    /\s(\d+)\ssur\s\d+,\sséries\s\d+\s$/,
+    "german"       :    /\s(\d+)\svon\s\d+,\sSerie\s\d+\s$/,
+    "greek"        :    /\s(\d+)\sαπό\s\d+,\sΣειρά\s\d+\s$/,
+    "hungarian"    :    /\s(\d+)\s\/\s\d+,\s\d+\.\ssorozat\s$/,
+    "italian"      :    /\s(\d+)\sdi\s\d+,\sserie\s\d+\s$/,
+    "japanese"     :    /\s\d+\s枚中\s(\d+)枚,\sシリーズ\s\d+\s$/,
+    "koreana"      :    /\s\d+장\s중\s(\d+)번째,\s시리즈\s\d+\s$/,
+    "norwegian"    :    /\s(\d+)\sav\s\d+,\sserie\s\d+\s$/,
+    "polish"       :    /\s(\d+)\sz\s\d+,\sseria\s\d+\s$/,
+    "portuguese"   :    /\s(\d+)\sde\s\d+,\s\d+ª\sSérie\s$/,
+    "brazilian"    :    /\s(\d+)\sde\s\d+,\ssérie\s\d+\s$/,
+    "romanian"     :    /\s(\d+)\sdin\s\d+,\sseria\s\d+\s$/,
+    "russian"      :    /\s(\d+)\sиз\s\d+,\sсерия\s\d+\s$/,
+    "schinese"     :    /\s\d+\s张中的第\s(\d+)\s张，系列\s\d+\s$/,
+    "spanish"      :    /\s(\d+)\sde\s\d+,\sserie\s\d+\s$/,
+    "swedish"      :    /\s(\d+)\sav\s\d+,\sserie\s\d+\s$/,
+    "tchinese"     :    /\s(\d+)\s\/\s\d+，第\s\d+\s套\s$/,
+    "thai"         :    /\s(\d+)\sจาก\s\d+\\sในชุดที่\s\d+\s$/,
+    "turkish"      :    /\s(\d+)\/\d+,\sSeri\s\d+\s$/,
+    "ukrainian"    :    /\s(\d+)\sз\s\d+,\sсерія\s№\d+\s$/
+};
+
 (function () {
     "use strict";
 
-    // ==Configuration==
-    const tradeTag = 2;//1 = #Number of Set in Title//2 = Card Name in Title
-    const tradeMode = 0;//0 = List both Owned and Unonwed Cards//1 = Only List Owned Cards, 2 = Only List Unowned Cards
-    const showQtyInTitle = false;//Show quantity in title?
-    const fullSetMode = 2;//0 = Cards Lister Mode//1 = Only check for game set that you have enough cards to make it full//2 = Complete your remainng set
-    const fullSetTarget = 0;//0 = Don't set a target number of Card Sets//Integer > 0 = Set a target number for Card Sets
-    const fullSetUnowned = true;//Check for sets that you're missing a whole full set? This has no effect if fullSetMode = 1
-    const fullSetStacked = false;//false = Will check for the nearest number of your card set, even if you have enough cards to have 2, 3 more set
-    const useLocalStorage = false;//Use HTML5 Local Storage instead, set this to true if you're using Greasemonkey
-    const useForcedFetch = false;//Use this if your Language is unsupported by the script by now, this is a workaround
-    const useForcedFetchBackup = true;//If no language is detected, it switches to Forced Fetch Mode automatically so that it won't throw an error
-    const steamID64 = "";//Your steamID64, needed for fetch trade data directly from trade forum
-    const customSteamID = "";//If you have set a custom ID for you Steam account, set this
-    const yourLanguage = "";//Set this if the script have problem detecting your language, see the Langlist below
-    const customTitle = " [1:1]";
-    const customBody = "\n[1:1] Trading";
-    const haveListTitle = "[H] ";
-    const wantListTitle = "[W] ";
-    const haveListBody = "[H]\n";
-    const wantListBody = "[W]\n";
-    // ==Configuration==
-
-    // ==Codes==
-    //List of languages, if you don't see your Language below, please contact me.
-    const langList = {
-        "english"      :    /\s(\d+)\sof\s\d+,\sSeries\s\d+\s$/,
-        "bulgarian"    :    /\s(\d+)\sот\s\d+,\sсерия\s\d+\s$/,
-        "czech"        :    /\s(\d+)\sz\s\d+,\s\d+\.\ssérie\s$/,
-        "danish"       :    /\s(\d+)\saf\s\d+,\sserie\s\d+\s$/,
-        "dutch"        :    /\s(\d+)\svan\sde\s\d+,\sserie\s\d+\s$/,
-        "finnish"      :    /\s(\d+)\s\/\s\d+,\sSarja\s\d+\s$/,
-        "french"       :    /\s(\d+)\ssur\s\d+,\sséries\s\d+\s$/,
-        "german"       :    /\s(\d+)\svon\s\d+,\sSerie\s\d+\s$/,
-        "greek"        :    /\s(\d+)\sαπό\s\d+,\sΣειρά\s\d+\s$/,
-        "hungarian"    :    /\s(\d+)\s\/\s\d+,\s\d+\.\ssorozat\s$/,
-        "italian"      :    /\s(\d+)\sdi\s\d+,\sserie\s\d+\s$/,
-        "japanese"     :    /\s\d+\s枚中\s(\d+)枚,\sシリーズ\s\d+\s$/,
-        "koreana"      :    /\s\d+장\s중\s(\d+)번째,\s시리즈\s\d+\s$/,
-        "norwegian"    :    /\s(\d+)\sav\s\d+,\sserie\s\d+\s$/,
-        "polish"       :    /\s(\d+)\sz\s\d+,\sseria\s\d+\s$/,
-        "portuguese"   :    /\s(\d+)\sde\s\d+,\s\d+ª\sSérie\s$/,
-        "brazilian"    :    /\s(\d+)\sde\s\d+,\ssérie\s\d+\s$/,
-        "romanian"     :    /\s(\d+)\sdin\s\d+,\sseria\s\d+\s$/,
-        "russian"      :    /\s(\d+)\sиз\s\d+,\sсерия\s\d+\s$/,
-        "schinese"     :    /\s\d+\s张中的第\s(\d+)\s张，系列\s\d+\s$/,
-        "spanish"      :    /\s(\d+)\sde\s\d+,\sserie\s\d+\s$/,
-        "swedish"      :    /\s(\d+)\sav\s\d+,\sserie\s\d+\s$/,
-        "tchinese"     :    /\s(\d+)\s\/\s\d+，第\s\d+\s套\s$/,
-        "thai"         :    /\s(\d+)\sจาก\s\d+\\sในชุดที่\s\d+\s$/,
-        "turkish"      :    /\s(\d+)\/\d+,\sSeri\s\d+\s$/,
-        "ukrainian"    :    /\s(\d+)\sз\s\d+,\sсерія\s№\d+\s$/
-    };
-
     function getInfo(doc,lang) {
-
         let ularrCards = [], arrCards = [], objCards = {}, total = 0, set, qtyDiff = false, lowestQty = Infinity;
         function clean(str,replacements) {
             replacements = (replacements) ? new Map([
