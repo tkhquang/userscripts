@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Youtube Show Channel Name In Title
 // @namespace    https://github.com/tkhquang
-// @version      1.2
+// @version      1.21
 // @description  Show channel's name (username) in title page
 // @author       Aleks
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -9,6 +9,7 @@
 // @match        http*://www.youtube.com/*
 // @run-at       document-start
 // @grant        none
+// @noframes
 // ==/UserScript==
 
 (function() {
@@ -17,7 +18,9 @@
     var channelName;
     function setTitle() {
         if (!document.getElementById("owner-name")) {
-            setTimeout(setTitle, 1000);
+            setTimeout(function() {
+                setTitle();
+            }, 2000);
             return;
         }
         channelName = document.getElementById("owner-name").textContent.trim();
