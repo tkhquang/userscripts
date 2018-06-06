@@ -2,9 +2,9 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.52
+// @version      1.53
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
-// @author       Aleks
+// @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
 // @homepage     https://greasyfork.org/en/scripts/368518-steam-community-complete-your-set-steam-forum-trading-helper
 // @match        *://steamcommunity.com/*/*/gamecards/*
@@ -72,38 +72,39 @@ const langList = {
 (function () {
     "use strict";
 
-    function getInfo(doc,lang) {
-        let ularrCards = [], arrCards = [], objCards = {}, total = 0,
-            set, qtyDiff = false, cardCheck = true, lowestQty = Infinity;
-        function clean(str,replacements) {
-            replacements = (replacements) ? new Map([
-                [/\s+/gm, " "],
-                [langList[lang], "=.=$1"],
-                [/^\s\((\d+)\)\s/, "$1=.="]
-            ]) : new Map([
-                [/\s+/gm, " "],
-                [langList[lang], "=.=$1"],
-                [/^\s/, "0=.="]
-            ]);
-            replacements.forEach(function(value, key) {
+    function getInfo(doc, lang) {
+        let ularrCards = [], arrCards = [], objCards = {}, total = 0, qtyDiff = false, cardCheck = true, lowestQty = Infinity, set;
+
+        function clean(str, replacements) {
+            replacements.forEach(function (value, key) {
                 str = str.replace(key, value);
             });
             return str;
         }
         function getOwnedCards() {
             const ownedCards = doc.getElementsByClassName("owned"),
-                  owned = [];
-            Array.from(ownedCards).forEach(function(card) {
-                owned.push(clean(card.textContent, true).split("=.="));
+                  owned = [],
+                  replaceOwned = new Map([
+                      [/\s+/gm, " "],
+                      [langList[lang], "=.=$1"],
+                      [/^\s\((\d+)\)\s/, "$1=.="]
+                  ]);
+            Array.from(ownedCards).forEach(function (card) {
+                owned.push(clean(card.textContent, replaceOwned).split("=.="));
             });
             //console.log(owned);
             return owned;
         }
         function getUnownedCards() {
             const unownedCards = doc.getElementsByClassName("unowned"),
-                  unowned = [];
-            Array.from(unownedCards).forEach(function(card) {
-                unowned.push(clean(card.textContent, false).split("=.="));
+                  unowned = [],
+                  replaceUnowned = new Map([
+                      [/\s+/gm, " "],
+                      [langList[lang], "=.=$1"],
+                      [/^\s/, "0=.="]
+                  ]);
+            Array.from(unownedCards).forEach(function (card) {
+                unowned.push(clean(card.textContent, replaceUnowned).split("=.="));
             });
             //console.log(unowned);
             return unowned;
@@ -111,11 +112,11 @@ const langList = {
         function sortArr(arr, index) {
             let sort = Object.keys(new Int8Array(arr.length + 1)).map(Number).slice(1);
             //console.log(sort);
-            arr = arr.map(function(item) {
+            arr = arr.map(function (item) {
                 let n = sort.indexOf(Number(item[index]));
                 sort[n] = "";
                 return [n, item];
-            }).sort().map(function(j) {
+            }).sort().map(function (j) {
                 return j[1];
             });
             return arr;
@@ -124,7 +125,7 @@ const langList = {
         arrCards = sortArr(ularrCards, 2);
         //console.log(arrCards);
         set = (arrCards.length > 0) ? arrCards.length : 0;
-        arrCards.forEach(function(card) {
+        arrCards.forEach(function (card) {
             let curQty = Number(card[0]);
             if (arrCards[0][0] !== card[0]) {
                 qtyDiff = true;
@@ -157,7 +158,7 @@ const langList = {
             wantListTextTitle = wantListTitle,
             haveListText = haveListBody,
             wantListText = wantListBody;
-        Object.keys(info.objCards).map((e) => info.objCards[e]).forEach(function(v) {
+        Object.keys(info.objCards).map((e) => info.objCards[e]).forEach(function (v) {
             let tag = (tradeTag === 2) ? v.name : v.order;
             if (v.quantity > numSet && tradeMode !== 2) {
                 haveListTextTitle += (showQtyInTitle) ? `${tag} (x${(v.quantity-numSet)}), ` : `${tag}, `;
@@ -174,7 +175,7 @@ const langList = {
         wantListTextTitle = wantListTextTitle.replace(/(?:,|,\s+)$/, "");
         //console.log(haveListTextTitle);console.log(wantListTextTitle);console.log(haveListText);console.log(wantListText);
         if (CYSstorage === "fetch") {
-            (function(reply, topic, btn) {
+            (function (reply, topic, btn) {
                 if (btn.length > 0) {
                     btn[0].click();
                 }
@@ -286,41 +287,42 @@ const langList = {
         disBtn[0].click();
         document.getElementsByClassName("forumtopic_reply_textarea")[0].value = CYSstorage.storageItem(0) + customBody;
         document.getElementsByClassName("forum_topic_input")[0].value = CYSstorage.storageItem(1) + customTitle;
-        setTimeout(function() {
+        setTimeout(function () {
             CYSstorage.storageClear();
         }, 1000);
     }
 
     function getStorage(mode) {
         let storageItem, storageInv, storageClear, storageSet;
+
         if (!mode) {
-            storageInv = function() {
+            storageInv = function () {
                 return Boolean(typeof GM_getValue("CYS-STORAGE") !== "undefined" && GM_getValue("CYS-STORAGE").length > 0);
             };
-            storageItem = function(index) {
+            storageItem = function (index) {
                 return JSON.parse(GM_getValue("CYS-STORAGE"))[index];
             };
-            storageClear = function() {
+            storageClear = function () {
                 GM_deleteValue("CYS-STORAGE");
                 console.log("(CYS) GM Storage Cleared");
             };
-            storageSet = function(content) {
+            storageSet = function (content) {
                 GM_setValue("CYS-STORAGE", content);
                 console.log("(CYS) Done storing trade info in GM Storage");
             };
         }
         if (mode) {
-            storageInv = function() {
+            storageInv = function () {
                 return Boolean(window.localStorage.cardTrade !== undefined && window.localStorage.cardTrade.length > 0);
             };
-            storageItem = function(index) {
+            storageItem = function (index) {
                 return JSON.parse(localStorage.cardTrade)[index];
             };
-            storageClear = function() {
+            storageClear = function () {
                 window.localStorage.removeItem("cardTrade");
                 console.log("(CYS) Local Storage Cleared");
             };
-            storageSet = function(content) {
+            storageSet = function (content) {
                 window.localStorage.cardTrade = content;
                 console.log("(CYS) Done storing trade info in Local Storage");
             };
@@ -339,14 +341,11 @@ const langList = {
                 userAva = document.getElementsByClassName("user_avatar");
             if (/^\d{17}$/.test(steamID64)) {
                 tempID = steamID64;
-            }
-            else if (/^[\w-_]+$/.test(customSteamID)) {
+            } else if (/^[\w-_]+$/.test(customSteamID)) {
                 tempID = customSteamID;
-            }
-            else if (document.cookie.match(pattn[0])) {
+            } else if (document.cookie.match(pattn[0])) {
                 tempID = document.cookie.match(pattn[0])[1];
-            }
-            else if (userAva.length > 0) {
+            } else if (userAva.length > 0) {
                 if (userAva[0].href.match(pattn[1])) {
                     tempID = userAva[0].href.match(pattn[1])[1];
                 }
@@ -363,12 +362,12 @@ const langList = {
         let resURL;
         fetch(`${URL}/gamecards/${appID}/?l=${lang}`, {
             method: "GET",
-            mode: "same-origin"}) .then(function(response) {
+            mode: "same-origin"}) .then(function (response) {
             resURL = response.url;
             console.log(`Getting data from ${resURL}...`);
             return response.text();
         })
-            .then(function(text) {
+            .then(function (text) {
             if (!resURL.match(`/gamecards/${appID}`) && resURL.match("/?goto=")) {
                 alert("(CYS) Something might not be right\nPlease try again or doing it manually "+
                       "if your trade data is not right");
@@ -377,7 +376,7 @@ const langList = {
             gameCardPage.innerHTML = text;
             readInfo(getInfo(gameCardPage, lang), calcTrade, CYSstorage);
         })
-            .catch(function(error) {
+            .catch(function (error) {
             alert("(CYS) Something went wrong, cannot fetch data, please try doing it manually");
             console.warn("Cannot fetch data, please try doing it manually", error);
         });
@@ -389,8 +388,8 @@ const langList = {
         }
         const btn = (subsBtn[0] || tradeofBtn[0]);
         const a = document.createElement("a");
-        a.className = (subsBtn.length>0) ? "btn_grey_black btn_medium" : "btn_darkblue_white_innerfade btn_medium";
-        a.onclick = function() {
+        a.className = (subsBtn.length > 0) ? "btn_grey_black btn_medium" : "btn_darkblue_white_innerfade btn_medium";
+        a.onclick = function () {
             passiveFetch(lang, appID, CYSstorage);
         };
         a.innerHTML = "<span>Fetch Info</span>";
@@ -408,8 +407,7 @@ const langList = {
         const cookieLang = document.cookie.match(/Steam_Language=(\w+)/);
         if (yourLanguage.length > 0) {
             tempLang = yourLanguage;
-        }
-        else {
+        } else {
             tempLang = (cookieLang) ? cookieLang[1] : null;
         }
         if (tempLang !== null && Object.keys(langList).indexOf(tempLang) > -1) {
@@ -432,7 +430,7 @@ const langList = {
     }
 
     function configCheck(condi, value) {
-        return condi.some(function(config) {
+        return condi.some(function (config) {
             return config === value;
         });
     }
@@ -445,12 +443,12 @@ const langList = {
             [1,2].indexOf(tradeTag) === -1,
             [0,1,2].indexOf(tradeMode) === -1,
             [0,1,2].indexOf(fullSetMode) === -1,
-            typeof(useLocalStorage) !== "boolean",
-            typeof(showQtyInTitle) !== "boolean",
-            typeof(fullSetUnowned) !== "boolean",
-            typeof(fullSetStacked) !== "boolean",
-            typeof(useForcedFetch) !== "boolean",
-            typeof(useForcedFetchBackup) !== "boolean"
+            typeof useLocalStorage !== "boolean",
+            typeof showQtyInTitle !== "boolean",
+            typeof fullSetUnowned !== "boolean",
+            typeof fullSetStacked !== "boolean",
+            typeof useForcedFetch !== "boolean",
+            typeof useForcedFetchBackup !== "boolean"
         ], GMChecks = [
             typeof GM_setValue !== "undefined",
             typeof GM_getValue !== "undefined",
@@ -480,8 +478,7 @@ const langList = {
                 userLang = "english";
                 console.log(`Your current language: ${userLang}`);
                 passiveFetch(userLang, window.location.pathname.split("/")[4], CYSstorage);
-            }
-            else {readInfo(getInfo(document, userLang), calcTrade, CYSstorage);}
+            } else {readInfo(getInfo(document, userLang), calcTrade, CYSstorage);}
         }
         if (/\/tradingforum/.test(window.location.pathname)) {
             userLang = getUserLang(document.getElementsByClassName("user_avatar"));
@@ -495,7 +492,7 @@ const langList = {
             }
             fetchButton(document.getElementsByClassName("forum_subscribe_button"),
                         document.getElementsByClassName("forum_topic_tradeoffer_button_ctn"),
-                        userLang, window.location.pathname.split("/")[2],"fetch");
+                        userLang, window.location.pathname.split("/")[2], "fetch");
             if (!CYSstorage.storageInv()) {
                 console.log("(CYS) No Stored Trade Info In Storage");
                 return;
@@ -512,7 +509,7 @@ const langList = {
                         return;
                     }
                 }
-                setTimeout(function() {
+                setTimeout(function () {
                     inTrade(CYSstorage, document.getElementsByClassName("responsive_OnClickDismissMenu"));
                 }, 1000);
             }
