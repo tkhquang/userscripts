@@ -2,7 +2,7 @@
 // @name         Youtube Show Channel Name In Title
 // @icon         https://s.ytimg.com/yts/img/favicon-vfl8qSV2F.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.22
+// @version      1.231
 // @description  Show channel's name (username) in title page
 // @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -16,11 +16,10 @@
 (function () {
     "use strict";
 
-    var channelName;
-    var pattn = Boolean(/^\/watch?/.test(window.location.pathname));
+    let channelName;
     function setTitle() {
-        var ownerName = document.getElementById("owner-name");
-        if (!pattn) {
+        const ownerName = document.getElementById("owner-name");
+        if (!(/^\/watch?/).test(window.location.pathname)) {
             return;
         }
         if (!ownerName || ownerName.textContent.length === 0) {
@@ -35,10 +34,9 @@
         }
         document.title = channelName + " | " + document.title;
     }
-
-    var observer = new MutationObserver(setTitle);
+    const observer = new MutationObserver(setTitle);
     document.addEventListener("yt-navigate-finish", function () {
-        if (pattn) {
+        if (/^\/watch?/.test(window.location.pathname)) {
             observer.observe(document.getElementsByTagName("title")[0], {
                 childList: true,
                 attributes: false,
