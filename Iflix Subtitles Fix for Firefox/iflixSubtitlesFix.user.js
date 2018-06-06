@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         Iflix Subtitles Fix for Firefox
+// @icon         https://piay.iflix.com/app/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      2.2
+// @version      2.3
 // @description  Subtitles fix for Firefox
-// @author       Aleks
+// @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
 // @homepage     https://greasyfork.org/en/scripts/367324-iflix-subtitles-fix-for-firefox
 // @match        http*://piay.iflix.com/*
@@ -34,13 +35,10 @@ const fontSize = "3vmin"; //font-size = minfontSize + this value
 const lineHeight = "150%"; //Better leave this as is - "normal" with lineVTT = 16
 // ==Configuration==
 
-//Codes
+// ==Codes
 function styleSub() {
     "use strict";
 
-    if (!(/^\/play/).test(window.location.pathname)) {
-        return;
-    }
     const css = `video::cue {
 font-size: calc(${minfontSize} + ${fontSize}) !important;
 line-height: ${lineHeight} !important;
@@ -66,9 +64,9 @@ function alterSub(activeSub) {
 
     let activeCues = activeSub.cues;
     function lineCheck() {
-        return Boolean(activeCues !== null &&activeCues[0] !== undefined && activeCues[0].line === lineVTT);
+        return Boolean(activeCues !== null && activeCues[0] !== undefined && activeCues[0].line === lineVTT);
     }
-    if (activeCues !==null && activeCues[0].line !== lineVTT) {
+    if (activeCues !== null && activeCues[0].line !== lineVTT) {
         Object.keys(activeCues).forEach(function (i) {
             activeCues[i].line = lineVTT;
         });
@@ -100,45 +98,46 @@ function getSubList(vidPlayer) {
             return false;
         }());
     }
-    subList.onchange = function() {
+    subList.onchange = function () {
         console.log("iSFix - Subtitles onchange action");
         if (getSub()) {
             alterSub(getSub());
         }
     };
-    setTimeout(function() {
+    setTimeout(function () {
         if (getSub()) {
             alterSub(getSub());
         }
     }, 10000);
 }
 
-function getVidState(vidPlayer, timer) {
+(function () {
     "use strict";
 
-    if ((timer === true && vidPlayer.length === 0) || vidPlayer[0] === undefined) {
-        console.warn("iSFix - No video? Try getting it after 5s...");
-        timer = setTimeout(function () {
-            getVidState(vidPlayer, true);
-        }, 5000);
-        return;
+    let timer;
+    function getVidState(vidPlayer) {
+        if (!(/^\/play/).test(window.location.pathname) || !timer) {
+            return;
+        }
+        if (vidPlayer.length === 0 || vidPlayer[0] === undefined) {
+            console.warn("iSFix - No video? Try getting it after 5s...");
+            setTimeout(function () {
+                getVidState(vidPlayer);
+            }, 5000);
+            return;
+        }
+        styleSub();
+        getSubList(vidPlayer);
     }
-    clearTimeout(timer);
-    styleSub();
-    getSubList(vidPlayer);
-}
-
-(function() {
-    "use strict";
-
-    document.arrive(".vimond-player-video", function() {
+    document.arrive(".vimond-player-video", function () {
         console.log("iSFix - Video element available");
+        timer = true;
         setTimeout(function () {
-            getVidState(document.getElementsByClassName("vimond-player-video"),true);
+            getVidState(document.getElementsByClassName("vimond-player-video"));
         }, 1000);
     });
-    document.leave(".vimond-player-video", function() {
+    document.leave(".vimond-player-video", function () {
         console.log("iSFix - Video element unavailable");
-        getVidState(document.getElementsByClassName("vimond-player-video"),false);
+        timer = false;
     });
 }());
