@@ -2,7 +2,7 @@
 // @name         Iflix Subtitles Fix for Firefox
 // @icon         https://piay.iflix.com/app/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      2.31
+// @version      2.32
 // @description  Subtitles fix for Firefox
 // @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -111,35 +111,29 @@ function getSubList(vidPlayer) {
     }, 10000);
 }
 
+function getVidState(vidPlayer) {
+    "use strict";
+    if (!(/^\/play/).test(window.location.pathname)) {
+        return;
+    }
+    if (vidPlayer.length === 0 || vidPlayer[0] === undefined) {
+        console.warn("iSFix - No video? Try getting it after 5s...");
+        setTimeout(function () {
+            getVidState(vidPlayer);
+        }, 5000);
+        return;
+    }
+    styleSub();
+    getSubList(vidPlayer);
+}
+
 (function () {
     "use strict";
 
-    let timer;
-    function getVidState(vidPlayer) {
-        if (!(/^\/play/).test(window.location.pathname) || !timer) {
-            return;
-        }
-        if (vidPlayer.length === 0 || vidPlayer[0] === undefined) {
-            console.warn("iSFix - No video? Try getting it after 5s...");
-            setTimeout(function () {
-                getVidState(vidPlayer);
-            }, 5000);
-            return;
-        }
-        styleSub();
-        getSubList(vidPlayer);
-    }
     document.arrive(".vimond-player-video", function () {
         console.log("iSFix - Video element available");
-        timer = true;
         setTimeout(function () {
             getVidState(document.getElementsByClassName("vimond-player-video"));
         }, 1000);
-    });
-    document.leave(".vimond-player-video", function () {
-        console.log("iSFix - Video element unavailable");
-        setTimeout(function () {
-            timer = false;
-        }, 10000);
     });
 }());
