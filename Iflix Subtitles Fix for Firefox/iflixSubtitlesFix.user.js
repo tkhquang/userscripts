@@ -2,7 +2,7 @@
 // @name         Iflix Subtitles Fix for Firefox
 // @icon         https://piay.iflix.com/app/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      2.3
+// @version      2.31
 // @description  Subtitles fix for Firefox
 // @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -22,7 +22,7 @@
  *
  * Copyright (c) 2014-2017 Uzair Farooq
  */
-
+/* jshint esversion: 6 */
 /*==================*
  * Reference: http://ronallo.com/demos/webvtt-cue-settings/
  * You can change the below variables to suite your needs.
@@ -138,6 +138,8 @@ function getSubList(vidPlayer) {
     });
     document.leave(".vimond-player-video", function () {
         console.log("iSFix - Video element unavailable");
-        timer = false;
+        setTimeout(function () {
+            timer = false;
+        }, 10000);
     });
 }());
