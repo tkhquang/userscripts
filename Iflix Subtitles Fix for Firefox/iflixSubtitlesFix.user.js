@@ -22,7 +22,7 @@
  *
  * Copyright (c) 2014-2017 Uzair Farooq
  */
-/* jshint esversion: 6 */
+
 /*==================*
  * Reference: http://ronallo.com/demos/webvtt-cue-settings/
  * You can change the below variables to suite your needs.
