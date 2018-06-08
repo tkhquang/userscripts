@@ -2,7 +2,7 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.53
+// @version      1.54
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -17,6 +17,7 @@
 // ==/UserScript==
 
 // ==Configuration==
+const EnhancedSteam = false;//Set to true if you're using EnhancedSteam, so that the buttons won't overlap
 const tradeTag = 2;//1 = #Number of Set in Title//2 = Card Name in Title
 const tradeMode = 0;//0 = List both Owned and Unonwed Cards//1 = Only List Owned Cards, 2 = Only List Unowned Cards
 const showQtyInTitle = false;//Show quantity in title?
@@ -204,13 +205,25 @@ const langList = {
         ]);
         //console.log(JSON.parse(CYStext));
         CYSstorage.storageSet(CYStext);
-        (function createButton() {
+        if (!EnhancedSteam) {
             const a = document.createElement("a");
             a.className = "btn_grey_grey btn_medium";
             a.href = `https://steamcommunity.com/app/${window.location.pathname.split("/")[4]}/tradingforum/`;
-            a.innerHTML = "<span>Visit Trading Forum</span>";
+            a.innerHTML = "<span>Visit Trade Forum</span>";
+            a.style.backgroundColor = "rgba(255, 0, 0, 0.3)";
             document.getElementsByClassName("gamecards_inventorylink")[0].appendChild(a);
-        }());
+        } else {
+            const node = document.createElement("style");
+            const css = 'a.es_visit_tforum[href^="https://steamcommunity.com"] {background-color: rgba(255, 0, 0, 0.3) !important;}';
+            node.type = "text/css";
+            node.appendChild(document.createTextNode(css));
+            const heads = document.getElementsByTagName("head");
+            if (heads.length > 0) {
+                heads[0].appendChild(node);
+            } else {
+                document.documentElement.appendChild(node);
+            }
+        }
     }
 
     function readInfo(cardInfo, calcTrade, CYSstorage) {
@@ -443,6 +456,7 @@ const langList = {
             [1,2].indexOf(tradeTag) === -1,
             [0,1,2].indexOf(tradeMode) === -1,
             [0,1,2].indexOf(fullSetMode) === -1,
+            typeof EnhancedSteam !== "boolean",
             typeof useLocalStorage !== "boolean",
             typeof showQtyInTitle !== "boolean",
             typeof fullSetUnowned !== "boolean",
