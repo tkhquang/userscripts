@@ -2,7 +2,7 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.54
+// @version      1.60
 // @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
 // @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -17,7 +17,7 @@
 // ==/UserScript==
 
 // ==Configuration==
-const EnhancedSteam = false;//Set to true if you're using EnhancedSteam, so that the buttons won't overlap
+const EnhancedSteam = false;//Set to true if you're using EnhancedSteam, so that the button won't overlap
 const tradeTag = 2;//1 = #Number of Set in Title//2 = Card Name in Title
 const tradeMode = 0;//0 = List both Owned and Unonwed Cards//1 = Only List Owned Cards, 2 = Only List Unowned Cards
 const showQtyInTitle = false;//Show quantity in title?
@@ -37,6 +37,8 @@ const haveListTitle = "[H] ";
 const wantListTitle = "[W] ";
 const haveListBody = "[H]\n";
 const wantListBody = "[W]\n";
+const foilTitle = "(Foil) ";
+const foilBody = "(Foil Trading)\n";
 // ==Configuration==
 
 // ==Codes==
@@ -150,14 +152,14 @@ const langList = {
         };
     }
 
-    function calcTrade(info, numSet, tradeNeed, CYSstorage) {
+    function calcTrade(info, numSet, tradeNeed, CYSstorage, foil) {
         if (!tradeNeed) {
             return;
         }
         let CYStext = [],
-            haveListTextTitle = haveListTitle,
+            haveListTextTitle = (foil) ? `${foilTitle}${haveListTitle}` : haveListTitle,
             wantListTextTitle = wantListTitle,
-            haveListText = haveListBody,
+            haveListText = (foil) ? `${foilBody}${haveListBody}` : haveListBody,
             wantListText = wantListBody;
         Object.keys(info.objCards).map((e) => info.objCards[e]).forEach(function (v) {
             let tag = (tradeTag === 2) ? v.name : v.order;
@@ -226,7 +228,7 @@ const langList = {
         }
     }
 
-    function readInfo(cardInfo, calcTrade, CYSstorage) {
+    function readInfo(cardInfo, calcTrade, CYSstorage, foil) {
         const info = cardInfo;
         //console.log(info);
         if (!info.cardCheck) {
@@ -290,7 +292,7 @@ const langList = {
                     break;
             }
         }
-        calcTrade(info, numSet, tradeNeed, CYSstorage);
+        calcTrade(info, numSet, tradeNeed, CYSstorage, foil);
     }
 
     function inTrade(CYSstorage, disBtn) {
@@ -345,7 +347,7 @@ const langList = {
         };
     }
 
-    function passiveFetch(lang, appID, CYSstorage) {
+    function passiveFetch(lang, appID, CYSstorage, foil) {
         const checkURL1 = "https://steamcommunity.com/profiles/";
         const checkURL2 = "https://steamcommunity.com/id/";
         const steamID = (function () {
@@ -373,7 +375,7 @@ const langList = {
         console.log(`Your SteamID = ${steamID}`);
         const URL = (/^7656119[0-9]{10}$/.test(steamID)) ? `${checkURL1}${steamID}` : `${checkURL2}${steamID}`;
         let resURL;
-        fetch(`${URL}/gamecards/${appID}/?l=${lang}`, {
+        fetch(`${URL}/gamecards/${appID}/${ (foil) ? `?border=1&l=${lang}` : `?l=${lang}`}`, {
             method: "GET",
             mode: "same-origin"}) .then(function (response) {
             resURL = response.url;
@@ -387,7 +389,7 @@ const langList = {
             }
             const gameCardPage = document.createElement("div");
             gameCardPage.innerHTML = text;
-            readInfo(getInfo(gameCardPage, lang), calcTrade, CYSstorage);
+            readInfo(getInfo(gameCardPage, lang), calcTrade, CYSstorage, foil);
         })
             .catch(function (error) {
             alert("(CYS) Something went wrong, cannot fetch data, please try doing it manually");
@@ -395,18 +397,41 @@ const langList = {
         });
     }
 
-    function fetchButton(subsBtn, tradeofBtn, lang, appID, CYSstorage) {
-        if (subsBtn.length === 0 && tradeofBtn.length === 0) {
+    function fetchButton(lang, appID, CYSstorage) {
+        const rightbox = document.getElementsByClassName("rightbox");
+        const tradeofBtn = document.getElementsByClassName("forum_topic_tradeoffer_button_ctn");
+        const inForum = Boolean(/\/(?:tradingforum|tradingforum\/)$/.test(window.location.href));
+        if (!inForum && tradeofBtn.length === 0) {
             return;
         }
-        const btn = (subsBtn[0] || tradeofBtn[0]);
+        const container = (inForum) ? rightbox[0] : tradeofBtn[0];
+        const content = document.createElement("div");
+        content.className = "content";
         const a = document.createElement("a");
-        a.className = (subsBtn.length > 0) ? "btn_grey_black btn_medium" : "btn_darkblue_white_innerfade btn_medium";
-        a.onclick = function () {
-            passiveFetch(lang, appID, CYSstorage);
-        };
+        a.className = "btn_darkblue_white_innerfade btn_medium";
         a.innerHTML = "<span>Fetch Info</span>";
-        btn.appendChild(a);
+        content.appendChild(a);
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.name = "cysfoil";
+        checkbox.id = "foil-checkbox";
+        content.appendChild(checkbox);
+        const label = document.createElement("Label");
+        label.setAttribute("for", checkbox.id);
+        label.innerHTML = "Foil";
+        content.appendChild(label);
+        if (inForum) {
+            const rule = document.createElement("div");
+            rule.className = "rule";
+            container.insertBefore(content, container.insertBefore(rule, container.firstChild));
+        } else {
+            container.style.display = "inline-flex";
+            content.style.marginLeft = "2px";
+            container.insertBefore(content, container.lastChild);
+        }
+        a.onclick = function () {
+            passiveFetch(lang, appID, CYSstorage, checkbox.checked);
+        };
     }
 
     function getUserLang(testEl) {
@@ -487,12 +512,15 @@ const langList = {
             if (CYSstorage.storageInv()) {
                 CYSstorage.storageClear();
             }
+            const badgeType = Boolean(/border=1/.test(window.location.href));
             if (userLang === "fetch") {
                 console.log("(CYS) Forced Fetch Mode is ON");
                 userLang = "english";
                 console.log(`Your current language: ${userLang}`);
-                passiveFetch(userLang, window.location.pathname.split("/")[4], CYSstorage);
-            } else {readInfo(getInfo(document, userLang), calcTrade, CYSstorage);}
+                passiveFetch(userLang, window.location.pathname.split("/")[4], CYSstorage, badgeType);
+            } else {
+                readInfo(getInfo(document, userLang), calcTrade, CYSstorage, badgeType);
+            }
         }
         if (/\/tradingforum/.test(window.location.pathname)) {
             userLang = getUserLang(document.getElementsByClassName("user_avatar"));
@@ -504,9 +532,7 @@ const langList = {
                 console.log("(CYS) Forced Fetch Mode is ON");
                 console.log(`Your current language: ${userLang}`);
             }
-            fetchButton(document.getElementsByClassName("forum_subscribe_button"),
-                        document.getElementsByClassName("forum_topic_tradeoffer_button_ctn"),
-                        userLang, window.location.pathname.split("/")[2], "fetch");
+            fetchButton(userLang, window.location.pathname.split("/")[2], "fetch");
             if (!CYSstorage.storageInv()) {
                 console.log("(CYS) No Stored Trade Info In Storage");
                 return;
