@@ -2,7 +2,7 @@
 // @name         Youtube Show Channel Name In Title
 // @icon         https://s.ytimg.com/yts/img/favicon-vfl8qSV2F.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.300
+// @version      1.301
 // @description  Show channel's name (username) in title page
 // @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -22,7 +22,7 @@
         if (!(/^\/watch?/).test(window.location.pathname)) {
             return;
         }
-        if (!ownerName || ownerName.textContent.length === 0) {
+        if (!ownerName || ownerName.innerText.trim().length === 0) {
             setTimeout(function () {
                 setTitle();
             }, 1000);
