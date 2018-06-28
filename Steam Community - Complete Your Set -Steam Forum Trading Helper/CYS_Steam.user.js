@@ -2,8 +2,8 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.60
-// @description  Automatically detects missing cards from a card set, help you auto-fill New Trading Thread input areas
+// @version      1.61
+// @description  Automatically detect missing cards from a card set, help you auto-fill Trading Thread input areas
 // @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
 // @homepage     https://greasyfork.org/en/scripts/368518-steam-community-complete-your-set-steam-forum-trading-helper
@@ -17,7 +17,7 @@
 // ==/UserScript==
 
 // ==Configuration==
-const EnhancedSteam = false;//Set to true if you're using EnhancedSteam, so that the button won't overlap
+const EnhancedSteam = false;//Set to true if you have EnhancedSteam installed, so that the button won't be overlapped
 const tradeTag = 2;//1 = #Number of Set in Title//2 = Card Name in Title
 const tradeMode = 0;//0 = List both Owned and Unonwed Cards//1 = Only List Owned Cards, 2 = Only List Unowned Cards
 const showQtyInTitle = false;//Show quantity in title?
@@ -30,7 +30,7 @@ const useForcedFetch = false;//Use this if your Language is unsupported by the s
 const useForcedFetchBackup = true;//If no language is detected, it switches to Forced Fetch Mode automatically so that it won't throw an error
 const steamID64 = "";//Your steamID64, needed for fetch trade data directly from trade forum
 const customSteamID = "";//If you have set a custom ID for you Steam account, set this
-const yourLanguage = "";//Set this if the script have problem detecting your language, see the Langlist below
+const yourLanguage = "";//Set this if the script has problems detecting your language, see the Langlist below
 const customTitle = " [1:1]";
 const customBody = "\n[1:1] Trading";
 const haveListTitle = "[H] ";
@@ -42,7 +42,7 @@ const foilBody = "(Foil Trading)\n";
 // ==Configuration==
 
 // ==Codes==
-//List of languages, if you don't see your Language below, please contact me.
+//List of languages, if you can't find your Language below, please contact me.
 const langList = {
     "english"      :    /\s(\d+)\sof\s\d+,\sSeries\s\d+\s$/,
     "bulgarian"    :    /\s(\d+)\sот\s\d+,\sсерия\s\d+\s$/,
