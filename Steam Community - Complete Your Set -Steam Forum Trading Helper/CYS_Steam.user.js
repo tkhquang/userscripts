@@ -2,7 +2,7 @@
 // @name         Steam Community - Complete Your Set (Steam Forum Trading Helper)
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.61
+// @version      1.7
 // @description  Automatically detect missing cards from a card set, help you auto-fill Trading Thread input areas
 // @author       AleksT.
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -57,6 +57,7 @@ const langList = {
     "italian"      :    /\s(\d+)\sdi\s\d+,\sserie\s\d+\s$/,
     "japanese"     :    /\s\d+\s枚中\s(\d+)枚,\sシリーズ\s\d+\s$/,
     "koreana"      :    /\s\d+장\s중\s(\d+)번째,\s시리즈\s\d+\s$/,
+    "latam"        :    /\s(\d+)\sde\s\d+,\sserie\s\d+\s$/,
     "norwegian"    :    /\s(\d+)\sav\s\d+,\sserie\s\d+\s$/,
     "polish"       :    /\s(\d+)\sz\s\d+,\sseria\s\d+\s$/,
     "portuguese"   :    /\s(\d+)\sde\s\d+,\s\d+ª\sSérie\s$/,
@@ -69,7 +70,8 @@ const langList = {
     "tchinese"     :    /\s(\d+)\s\/\s\d+，第\s\d+\s套\s$/,
     "thai"         :    /\s(\d+)\sจาก\s\d+\sในชุดที่\s\d+\s$/,
     "turkish"      :    /\s(\d+)\/\d+,\sSeri\s\d+\s$/,
-    "ukrainian"    :    /\s(\d+)\sз\s\d+,\sсерія\s№\d+\s$/
+    "ukrainian"    :    /\s(\d+)\sз\s\d+,\sсерія\s№\d+\s$/,
+    "vietnamese"   :    /\s(\d+)\strong\s\d+,\ssê-ri\s\d+\s$/
 };
 
 (function () {
