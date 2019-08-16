@@ -1,0 +1,9 @@
+{
+  "name": "userscripts",
+  "version": "1.0.0",
+  "description": "Userscripts for Tampermonkey/Violentmonkey/Greasemonkey",
+  "repository": "git@github.com:tkhquang/userscripts.git",
+  "author": "Quang Trinh <khacquang.trinh@gmail.com>",
+  "license": "MIT",
+  "private": true
+}
