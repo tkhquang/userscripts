@@ -2,9 +2,9 @@
 // @name         Youtube Show Channel Name In Title
 // @icon         https://s.ytimg.com/yts/img/favicon-vfl8qSV2F.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.400
+// @version      1.500
 // @description  Show channel's name (username) in title page
-// @author       AleksT.
+// @author       Quang Trinh
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
 // @homepage     https://greasyfork.org/en/scripts/368421-youtube-show-channel-name-in-title
 // @match        http*://www.youtube.com/*
@@ -18,11 +18,11 @@
 
   let channelName;
   function setTitle() {
-    const ownerName = document.getElementById("owner-container");
+    const ownerName = document.getElementById("owner-container") || document.querySelector("#container #text-container #text a");
     if (!(/^\/watch?/).test(window.location.pathname)) {
       return;
     }
-    if (!ownerName || ownerName.innerText.trim().length === 0) {
+    if (!ownerName || !ownerName.innerText.trim().length) {
       return;
     }
     channelName = ownerName.innerText.trim();
