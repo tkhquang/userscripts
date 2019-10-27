@@ -2,7 +2,7 @@
 // @name         Steam Community - Leave Banned Groups
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.10
+// @version      1.11
 // @description  Add a button to leave invisble banned groups on steam
 // @author       Quang Trinh
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -12,6 +12,8 @@
 // @require      https://code.jquery.com/jquery-3.4.1.min.js
 // @grant        none
 // ==/UserScript==
+
+/*jshint esversion: 8 */
 
 // ==Configuration==
 const STEAM_WEB_API = ""; // Required, get from here: https://steamcommunity.com/dev/apikey
@@ -40,16 +42,14 @@ const STEAM_WEB_API = ""; // Required, get from here: https://steamcommunity.com
 
   async function doAjax (opts) {
     try {
-      const data = await $.ajax({
-        ...opts
-      });
+      const data = await $.ajax(opts);
       return data;
     } catch (response) {
       if (response instanceof Error) {
         return Promise.reject(response);
       }
       // is jqXHR
-      const error = new Error;
+      const error = new Error();
       error.message = response.statusText;
       return Promise.reject(error);
     }
