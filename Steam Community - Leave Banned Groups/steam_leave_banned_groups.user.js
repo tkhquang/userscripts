@@ -2,7 +2,7 @@
 // @name         Steam Community - Leave Banned Groups
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.11
+// @version      1.20
 // @description  Add a button to leave invisble banned groups on steam
 // @author       Quang Trinh
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -10,22 +10,19 @@
 // @include      /^https?:\/\/steamcommunity\.com\/(?:id|profiles)\/[\w-_]+\/groups\/?$/
 // @run-at       document-idle
 // @require      https://code.jquery.com/jquery-3.4.1.min.js
-// @grant        none
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_deleteValue
+// @grant        unsafeWindow
 // ==/UserScript==
 
-/*jshint esversion: 8 */
+/* jshint esversion: 8 */
+/* global GM_getValue:true, GM_setValue:true, GM_deleteValue:true, unsafeWindow */
 
-// ==Configuration==
-const STEAM_WEB_API = ""; // Required, get from here: https://steamcommunity.com/dev/apikey
-// ==Configuration==
-
-(function ($) {
+(function (window) {
   "use strict";
 
-  if (!STEAM_WEB_API.trim()) {
-    alert("Steam Leave Banned Group Userscript\nSteam Web API is required");
-    return;
-  }
+  const $ = window.jQuery.noConflict(true);
 
   const steamId = window.g_steamID;
   const sessionId = window.g_sessionID;
@@ -39,6 +36,49 @@ const STEAM_WEB_API = ""; // Required, get from here: https://steamcommunity.com
   if (window.g_rgProfileData.steamid !== steamId ) {
     return;
   }
+
+  const GMChecks = [
+    typeof GM_setValue !== "undefined",
+    typeof GM_getValue !== "undefined",
+    typeof GM_deleteValue !== "undefined"
+  ];
+
+  const useLocalStorage = !GMChecks.every(function (check) {
+    return Boolean(check);
+  });
+
+  if (useLocalStorage) {
+    GM_getValue = function (key, def) {
+      return window.localStorage[key] || def;
+    };
+    GM_setValue = function (key, value) {
+      window.localStorage[key] = value;
+    };
+    GM_deleteValue = function (key) {
+      return window.localStorage.removeItem(key);
+    };
+  }
+
+  const SteamApiKey = (function () {
+    let currentKey = GM_getValue("LBG_STEAM_API_KEY", "");
+    while (currentKey !== null && !/[0-9A-Z]{32}/.test(currentKey)) {
+      currentKey = prompt("Steam Leave Banned Group Userscript\n"
+        + "Please enter your Steam API Key\n"
+        + "Get from here:\n"
+        + "https://steamcommunity.com/dev/apikey\n"
+      );
+    }
+    return currentKey;
+  })();
+
+  // On cancel, exit
+  if (SteamApiKey === null) {
+    return;
+  }
+
+  GM_setValue("LBG_STEAM_API_KEY", SteamApiKey);
+
+  console.log("LBG - API Key", SteamApiKey);
 
   async function doAjax (opts) {
     try {
@@ -63,7 +103,7 @@ const STEAM_WEB_API = ""; // Required, get from here: https://steamcommunity.com
         type: "GET",
         url: "https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/",
         data: {
-          key: STEAM_WEB_API,
+          key: SteamApiKey,
           steamid: steamId
         },
         dataType: "json",
@@ -160,19 +200,25 @@ const STEAM_WEB_API = ""; // Required, get from here: https://steamcommunity.com
       return Promise.reject(error);
     }
   }
-
   $(function () {
     $("<button />", {
-      id: "userscript_leave_banned_groups",
+      id: "lbg_btn",
       title: "Click to leave banned groups",
       text: "Leave banned groups",
       type: "button"
     }).appendTo(".friends_nav");
 
+    $("<a />", {
+      id: "lbg_clear_btn",
+      title: "Click to remove current Steam API Key",
+      text: "Remove current Steam API Key",
+      href: "javascript:void(0)"
+    }).appendTo(".friends_nav");
+
     $("<style>")
       .prop("type", "text/css")
       .html(`
-        #userscript_leave_banned_groups {
+        #lbg_btn {
           width: 100%;
           background-color: #015e80;
           border-radius: 5px;
@@ -184,20 +230,27 @@ const STEAM_WEB_API = ""; // Required, get from here: https://steamcommunity.com
           text-decoration: none;
           text-shadow: 0px 1px 0px #2f6627;
         }
-        #userscript_leave_banned_groups:hover:enabled {
+        #lbg_btn:hover:enabled {
           background-color: #004a50;
         }
-        #userscript_leave_banned_groups:active {
+        #lbg_btn:active {
           position: relative;
           top: 1px;
         }
-        #userscript_leave_banned_groups:disabled {
+        #lbg_btn:disabled {
           cursor: not-allowed;
-        }`
+        }
+        #lbg_clear_btn {
+          background-color: none;
+          text-align: center;
+          padding: 5px;
+        }
+        `
       )
       .appendTo("head");
 
-    const btn = $("#userscript_leave_banned_groups");
+    const btn = $("#lbg_btn");
+    const btnClear = $("#lbg_clear_btn");
     const originalText = btn.text();
 
     let timer;
@@ -268,6 +321,23 @@ const STEAM_WEB_API = ""; // Required, get from here: https://steamcommunity.com
         }
       }
     );
+
+    btnClear.click(
+      function (e) {
+        e.preventDefault();
+        try {
+          GM_deleteValue("LBG_STEAM_API_KEY");
+          setPermText(btnClear, "Remove API Key Success");
+          setTimeout(function () {
+            window.location.reload();
+          }, 3000);
+        } catch (error) {
+          console.log("An error occured", error);
+          alert("An error occured");
+          setText(btnClear, "An error occured");
+        }
+      }
+    );
   });
 
-})(window.jQuery.noConflict(true));
+})(unsafeWindow);
