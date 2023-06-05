@@ -2,7 +2,7 @@
 // @name         Steam Community - Leave Banned Groups
 // @icon         https://store.steampowered.com/favicon.ico
 // @namespace    https://github.com/tkhquang
-// @version      1.20
+// @version      1.21
 // @description  Add a button to leave invisble banned groups on steam
 // @author       Quang Trinh
 // @license      MIT; https://raw.githubusercontent.com/tkhquang/userscripts/master/LICENSE
@@ -33,14 +33,14 @@
   }
 
   // On someone else's profile, exit
-  if (window.g_rgProfileData.steamid !== steamId ) {
+  if (window.g_rgProfileData.steamid !== steamId) {
     return;
   }
 
   const GMChecks = [
     typeof GM_setValue !== "undefined",
     typeof GM_getValue !== "undefined",
-    typeof GM_deleteValue !== "undefined"
+    typeof GM_deleteValue !== "undefined",
   ];
 
   const useLocalStorage = !GMChecks.every(function (check) {
@@ -62,10 +62,11 @@
   const SteamApiKey = (function () {
     let currentKey = GM_getValue("LBG_STEAM_API_KEY", "");
     while (currentKey !== null && !/[0-9A-Z]{32}/.test(currentKey)) {
-      currentKey = prompt("Steam Leave Banned Group Userscript\n"
-        + "Please enter your Steam API Key\n"
-        + "Get from here:\n"
-        + "https://steamcommunity.com/dev/apikey\n"
+      currentKey = prompt(
+        "Steam Leave Banned Group Userscript\n" +
+          "Please enter your Steam API Key\n" +
+          "Get from here:\n" +
+          "https://steamcommunity.com/dev/apikey\n"
       );
     }
     return currentKey;
@@ -80,7 +81,7 @@
 
   console.log("LBG - API Key", SteamApiKey);
 
-  async function doAjax (opts) {
+  async function doAjax(opts) {
     try {
       const data = await $.ajax(opts);
       return data;
@@ -96,7 +97,7 @@
   }
 
   // Get all groups which the user is in
-  async function getAllGroups () {
+  async function getAllGroups() {
     try {
       // This return the id [g:1:${id}]
       const { response } = await doAjax({
@@ -104,21 +105,20 @@
         url: "https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/",
         data: {
           key: SteamApiKey,
-          steamid: steamId
+          steamid: steamId,
         },
         dataType: "json",
       });
 
-      return response.groups
-        .map(function (groups) {
-          return groups.gid;
-        });
+      return response.groups.map(function (groups) {
+        return groups.gid;
+      });
     } catch (error) {
       return Promise.reject(error);
     }
   }
 
-  function getVisibleGroups () {
+  function getVisibleGroups() {
     const pattern = /group_(\d+)/;
 
     try {
@@ -135,16 +135,18 @@
   }
 
   // Filter out other types of groups (offcial game groups, .etc)
-  async function filterOutNotBanned (groupIds) {
+  async function filterOutNotBanned(groupIds) {
     try {
-      const results = await Promise.all(groupIds.map(async function (groupId) {
-        const html = await doAjax({
-          url: `https://steamcommunity.com/gid/[g:1:${groupId}]`,
-          type: "get",
-          dataType: "html"
-        });
-        return /This group has been removed for violating/.test(html) ? groupId : null;
-      }));
+      const results = await Promise.all(
+        groupIds.map(async function (groupId) {
+          const html = await doAjax({
+            url: `https://steamcommunity.com/gid/[g:1:${groupId}]?l=english`,
+            type: "get",
+            dataType: "html",
+          });
+          return /This group has been removed for violating/.test(html) ? groupId : null;
+        })
+      );
       return results.filter(function (result) {
         return result !== null;
       });
@@ -153,37 +155,39 @@
     }
   }
 
-  async function getBannedGroupInfo (groupIds) {
+  async function getBannedGroupInfo(groupIds) {
     const pattern = /<!\[CDATA\[(.*)]]>/;
 
     try {
-      const groupInfo = await Promise.all(groupIds.map(async function (groupId) {
-        const xml = await doAjax({
-          url: `https://steamcommunity.com/gid/[g:1:${groupId}]/memberslistxml/`,
-          data: {
-            xml: 1
-          },
-          type: "GET",
-          dataType: "xml"
-        });
-        return {
-          groupID64: $(xml).find("groupID64").html(),
-          groupName: pattern.exec($(xml).find("groupName").html())[1]
-        };
-      }));
+      const groupInfo = await Promise.all(
+        groupIds.map(async function (groupId) {
+          const xml = await doAjax({
+            url: `https://steamcommunity.com/gid/[g:1:${groupId}]/memberslistxml/`,
+            data: {
+              xml: 1,
+            },
+            type: "GET",
+            dataType: "xml",
+          });
+          return {
+            groupID64: $(xml).find("groupID64").html(),
+            groupName: pattern.exec($(xml).find("groupName").html())[1],
+          };
+        })
+      );
       return groupInfo;
     } catch (error) {
       return Promise.reject(error);
     }
   }
 
-  async function sendLeaveRequest (groupInfo) {
+  async function sendLeaveRequest(groupInfo) {
     const data = {
       action: "leave_group",
       sessionid: sessionId,
       ajax: 1,
       steamid: steamId,
-      steamids: [groupInfo.groupID64]
+      steamids: [groupInfo.groupID64],
     };
 
     try {
@@ -191,7 +195,7 @@
         url: `https://steamcommunity.com/profiles/${steamId}/friends/action`,
         type: "POST",
         dataType: "json",
-        data
+        data,
       });
       console.log(`Left ${groupInfo.groupName}`, response);
       return response;
@@ -205,19 +209,20 @@
       id: "lbg_btn",
       title: "Click to leave banned groups",
       text: "Leave banned groups",
-      type: "button"
+      type: "button",
     }).appendTo(".friends_nav");
 
     $("<a />", {
       id: "lbg_clear_btn",
       title: "Click to remove current Steam API Key",
       text: "Remove current Steam API Key",
-      href: "javascript:void(0)"
+      href: "javascript:void(0)",
     }).appendTo(".friends_nav");
 
     $("<style>")
       .prop("type", "text/css")
-      .html(`
+      .html(
+        `
         #lbg_btn {
           width: 100%;
           background-color: #015e80;
@@ -255,7 +260,7 @@
 
     let timer;
 
-    function setText (el, text) {
+    function setText(el, text) {
       const $this = el;
       clearTimeout(timer);
 
@@ -265,12 +270,12 @@
       }, 5000);
     }
 
-    function setPermText (el, text) {
+    function setPermText(el, text) {
       const $this = el;
       $this.text(text);
     }
 
-    async function initialize () {
+    async function initialize() {
       btn.attr("disabled", true);
       setPermText(btn, "Checking...");
 
@@ -296,9 +301,11 @@
       setPermText(btn, `Leaving ${bannedGroupWithInfo.length} groups...`);
 
       // Send requests to leave those groups
-      await Promise.all(bannedGroupWithInfo.map(function (groupInfo) {
-        return sendLeaveRequest(groupInfo);
-      }));
+      await Promise.all(
+        bannedGroupWithInfo.map(function (groupInfo) {
+          return sendLeaveRequest(groupInfo);
+        })
+      );
 
       // Success
       console.log(`Left ${bannedGroupWithInfo.length} Steam Groups successfully`);
@@ -307,37 +314,32 @@
       alert(`Left ${bannedGroupWithInfo.length} groups\nCheck the browser console for more information`);
     }
 
-    btn.click(
-      async function (e) {
-        e.preventDefault();
-        try {
-          await initialize();
-        } catch (error) {
-          console.log("An error occured", error);
-          alert("An error occured");
-          setText(btn, "An error occured");
-        } finally {
-          btn.removeAttr("disabled");
-        }
+    btn.click(async function (e) {
+      e.preventDefault();
+      try {
+        await initialize();
+      } catch (error) {
+        console.log("An error occured", error);
+        alert("An error occured");
+        setText(btn, "An error occured");
+      } finally {
+        btn.removeAttr("disabled");
       }
-    );
+    });
 
-    btnClear.click(
-      function (e) {
-        e.preventDefault();
-        try {
-          GM_deleteValue("LBG_STEAM_API_KEY");
-          setPermText(btnClear, "Remove API Key Success");
-          setTimeout(function () {
-            window.location.reload();
-          }, 3000);
-        } catch (error) {
-          console.log("An error occured", error);
-          alert("An error occured");
-          setText(btnClear, "An error occured");
-        }
+    btnClear.click(function (e) {
+      e.preventDefault();
+      try {
+        GM_deleteValue("LBG_STEAM_API_KEY");
+        setPermText(btnClear, "Remove API Key Success");
+        setTimeout(function () {
+          window.location.reload();
+        }, 3000);
+      } catch (error) {
+        console.log("An error occured", error);
+        alert("An error occured");
+        setText(btnClear, "An error occured");
       }
-    );
+    });
   });
-
 })(unsafeWindow);
