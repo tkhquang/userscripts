@@ -5,5 +5,8 @@
   "repository": "git@github.com:tkhquang/userscripts.git",
   "author": "Quang Trinh <khacquang.trinh@gmail.com>",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "eslint": "^8.42.0"
+  }
 }
